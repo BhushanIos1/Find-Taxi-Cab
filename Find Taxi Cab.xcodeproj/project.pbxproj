@@ -6,7 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A1E0A777FBB8106D49B8B5DF /* Pods_Find_Taxi_Cab.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 477760E0C72CED4AF54751EC /* Pods_Find_Taxi_Cab.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		048E5035D67A9E61996D1F61 /* Pods-Find Taxi Cab.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Find Taxi Cab.release.xcconfig"; path = "Target Support Files/Pods-Find Taxi Cab/Pods-Find Taxi Cab.release.xcconfig"; sourceTree = "<group>"; };
+		477760E0C72CED4AF54751EC /* Pods_Find_Taxi_Cab.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Find_Taxi_Cab.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		808F078918D8032076B7C348 /* Pods-Find Taxi Cab.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Find Taxi Cab.debug.xcconfig"; path = "Target Support Files/Pods-Find Taxi Cab/Pods-Find Taxi Cab.debug.xcconfig"; sourceTree = "<group>"; };
 		C62DE1012F4E2ACF00E65D9D /* Find Taxi Cab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Find Taxi Cab.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -23,17 +30,37 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1E0A777FBB8106D49B8B5DF /* Pods_Find_Taxi_Cab.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		65A0E73D881BABB65479DF40 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				808F078918D8032076B7C348 /* Pods-Find Taxi Cab.debug.xcconfig */,
+				048E5035D67A9E61996D1F61 /* Pods-Find Taxi Cab.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		C528B00380ACF49773FEB6A1 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				477760E0C72CED4AF54751EC /* Pods_Find_Taxi_Cab.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		C62DE0F82F4E2ACF00E65D9D = {
 			isa = PBXGroup;
 			children = (
 				C62DE1032F4E2ACF00E65D9D /* Find Taxi Cab */,
 				C62DE1022F4E2ACF00E65D9D /* Products */,
+				65A0E73D881BABB65479DF40 /* Pods */,
+				C528B00380ACF49773FEB6A1 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -52,9 +79,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C62DE10F2F4E2AD100E65D9D /* Build configuration list for PBXNativeTarget "Find Taxi Cab" */;
 			buildPhases = (
+				2A1B896E6936F25D458EFB8B /* [CP] Check Pods Manifest.lock */,
 				C62DE0FD2F4E2ACF00E65D9D /* Sources */,
 				C62DE0FE2F4E2ACF00E65D9D /* Frameworks */,
 				C62DE0FF2F4E2ACF00E65D9D /* Resources */,
+				6DBA4F20A4A497FFE2ED4B8B /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -64,8 +93,6 @@
 				C62DE1032F4E2ACF00E65D9D /* Find Taxi Cab */,
 			);
 			name = "Find Taxi Cab";
-			packageProductDependencies = (
-			);
 			productName = "Find Taxi Cab";
 			productReference = C62DE1012F4E2ACF00E65D9D /* Find Taxi Cab.app */;
 			productType = "com.apple.product-type.application";
@@ -113,6 +140,48 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		2A1B896E6936F25D458EFB8B /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Find Taxi Cab-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		6DBA4F20A4A497FFE2ED4B8B /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Find Taxi Cab/Pods-Find Taxi Cab-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Find Taxi Cab/Pods-Find Taxi Cab-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Find Taxi Cab/Pods-Find Taxi Cab-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C62DE0FD2F4E2ACF00E65D9D /* Sources */ = {
@@ -246,6 +315,7 @@
 		};
 		C62DE1102F4E2AD100E65D9D /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 808F078918D8032076B7C348 /* Pods-Find Taxi Cab.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -255,11 +325,15 @@
 				DEVELOPMENT_TEAM = 4YZSJ483Z5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Find-Taxi-Cab-Info.plist";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to find nearby taxis.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need storage access to upload images and documents.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need storage access to upload images and documents.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -267,14 +341,19 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.viatris.Find-Taxi-Cab";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
 		C62DE1112F4E2AD100E65D9D /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 048E5035D67A9E61996D1F61 /* Pods-Find Taxi Cab.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -284,11 +363,15 @@
 				DEVELOPMENT_TEAM = 4YZSJ483Z5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Find-Taxi-Cab-Info.plist";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to find nearby taxis.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need storage access to upload images and documents.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need storage access to upload images and documents.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -296,9 +379,13 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.viatris.Find-Taxi-Cab";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
