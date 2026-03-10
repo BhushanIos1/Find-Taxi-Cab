@@ -10,6 +10,9 @@ import UserNotifications
 import IQKeyboardManagerSwift
 import IQKeyboardToolbarManager
 
+import GoogleMaps
+import GooglePlaces
+
 class AppDelegate: NSObject,
                    UIApplicationDelegate,
                    UNUserNotificationCenterDelegate {
@@ -27,6 +30,14 @@ class AppDelegate: NSObject,
         IQKeyboardToolbarManager.shared.isEnabled = true
         IQKeyboardToolbarManager.shared.toolbarConfiguration.tintColor = UIColor.black
         IQKeyboardToolbarManager.shared.toolbarConfiguration.previousNextDisplayMode = .alwaysShow
+        
+        GMSServices.provideAPIKey(MapAPIKey.apiKey)
+        GMSServices.provideAPIKey(MapAPIKey.apiKey)
+        GMSPlacesClient.provideAPIKey(MapAPIKey.apiKey)
         return true
     }
+}
+
+struct MapAPIKey {
+    static let apiKey = "AIzaSyCRNoYcfxw8v8YOT35Z4BRhK-6J22-Qv-Y"
 }

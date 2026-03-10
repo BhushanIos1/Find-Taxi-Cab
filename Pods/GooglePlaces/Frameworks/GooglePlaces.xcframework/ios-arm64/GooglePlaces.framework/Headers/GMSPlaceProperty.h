@@ -1,0 +1,97 @@
+//
+//  GMSPlaceProperty.h
+//  Google Places SDK for iOS
+//
+//  Copyright 2018 Google LLC
+//
+//  Usage of this SDK is subject to the Google Maps/Google Earth APIs Terms of
+//  Service: https://cloud.google.com/maps-platform/terms
+//
+
+#import <Foundation/Foundation.h>
+
+NS_ASSUME_NONNULL_BEGIN
+
+/**
+ * \defgroup PlaceField GMSPlaceProperty
+ * @{
+ */
+
+/**
+ * The properties represent individual information that can be requested for `GMSPlace` objects.
+ * If no request properties are set, the `GMSPlace` object will be empty with no useful information.
+ *
+ * Note: `GMSPlacePropertyPhoneNumber`, `GMSPlacePropertyWebsite`, and
+ * `GMSPlacePropertyAddressComponents` are not supported for `GMSPlaceLikelihoodList` place objects.
+ * Refer to https://developers.google.com/places/ios-sdk/place-data-fields for more details.
+ */
+
+typedef NSString *const GMSPlaceProperty NS_TYPED_EXTENSIBLE_ENUM;
+
+/**
+ * Returns an array of all available `GMSPlaceProperty`.
+ */
+FOUNDATION_EXTERN NSArray<GMSPlaceProperty> *GMSPlacePropertyArray(void);
+
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyName;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyPlaceID;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyPlusCode;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyCoordinate;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyOpeningHours;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyPhoneNumber;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyFormattedAddress;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyRating;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyPriceLevel;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyTypes;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyWebsite;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyViewport;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyAddressComponents;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyPhotos;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyUserRatingsTotal;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyUTCOffsetMinutes;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyBusinessStatus;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyIconImageURL;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyIconBackgroundColor;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyTakeout;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyDelivery;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyDineIn;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyCurbsidePickup;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyReservable;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyServesBreakfast;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyServesLunch;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyServesDinner;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyServesBeer;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyServesWine;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyServesBrunch;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyServesVegetarianFood;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyWheelchairAccessibleEntrance;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyCurrentOpeningHours;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertySecondaryOpeningHours;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyEditorialSummary;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyReviews;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyPureServiceAreaBusiness;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyEVChargeOptions;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyParkingOptions;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyEVChargeAmenitySummary;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyGenerativeSummary;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyNeighborhoodSummary;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyReviewSummary;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyConsumerAlert;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyOutdoorSeating;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyLiveMusic;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyMenuForChildren;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyServesCocktails;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyServesDessert;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyServesCoffee;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyGoodForChildren;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyAllowsDogs;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyRestroom;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyGoodForGroups;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyGoodForWatchingSports;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyAccessibilityOptions;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyFuelOptions;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyPaymentOptions;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyGoogleMapsLinks;
+FOUNDATION_EXTERN GMSPlaceProperty GMSPlacePropertyAll;
+
+NS_ASSUME_NONNULL_END

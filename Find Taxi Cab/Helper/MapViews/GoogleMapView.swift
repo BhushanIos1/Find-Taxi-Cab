@@ -17,6 +17,7 @@ struct GoogleMapView: UIViewRepresentable {
         
         let mapView = GMSMapView()
         
+        mapView.isMyLocationEnabled = true
         mapView.settings.myLocationButton = true
         mapView.settings.compassButton = true
         mapView.settings.indoorPicker = false

@@ -1,6 +1,14 @@
 # Acknowledgements
 This application makes use of the following third party libraries:
 
+## GoogleMaps
+
+Copyright 2025 Google LLC
+
+## GooglePlaces
+
+Copyright 2026 Google LLC
+
 ## IQKeyboardCore
 
 MIT License

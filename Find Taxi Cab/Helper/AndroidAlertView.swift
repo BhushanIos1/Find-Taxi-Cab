@@ -8,11 +8,41 @@
 import SwiftUI
 
 struct AndroidAlertView: View {
+    
+    @Environment(\.colorScheme) var colorScheme
+    
+    let message: String
+    let buttonTitle: String
+    let action: () -> Void
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        
+        VStack(spacing: 24) {
+            
+            Text(message)
+                .font(AppFont.font(.regular, size: 16))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            Button {
+                action()
+            } label: {
+                Text(buttonTitle)
+                    .primaryButtonStyle()
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 4)
+                .fill(colorScheme == .dark
+                      ? Color(.systemGray6)
+                      : Color(.white))
+        )
+        .padding(30)
+        .shadow(radius: 20)
     }
 }
 
 #Preview {
-    AndroidAlertView()
+    AndroidAlertView(message: "Sorry No Vehicle Available. Please Try Later", buttonTitle: "OK", action: {})
 }

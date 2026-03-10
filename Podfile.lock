@@ -1,4 +1,8 @@
 PODS:
+  - GoogleMaps (10.7.0):
+    - GoogleMaps/Maps (= 10.7.0)
+  - GoogleMaps/Maps (10.7.0)
+  - GooglePlaces (10.10.0)
   - IQKeyboardCore (1.0.8)
   - IQKeyboardManagerSwift (8.0.1):
     - IQKeyboardManagerSwift/Appearance (= 8.0.1)
@@ -39,11 +43,15 @@ PODS:
     - IQKeyboardToolbar/Placeholderable
 
 DEPENDENCIES:
+  - GoogleMaps
+  - GooglePlaces
   - IQKeyboardManagerSwift
   - IQKeyboardToolbarManager
 
 SPEC REPOS:
   trunk:
+    - GoogleMaps
+    - GooglePlaces
     - IQKeyboardCore
     - IQKeyboardManagerSwift
     - IQKeyboardNotification
@@ -54,6 +62,8 @@ SPEC REPOS:
     - IQTextView
 
 SPEC CHECKSUMS:
+  GoogleMaps: 5db81729b4f6defd40820d46b49a350273ec1d28
+  GooglePlaces: 5bb2325623eb1809b38a9c5e12db97c1dc35cb4f
   IQKeyboardCore: 8652977ec919cf5351aa2977fedd1a6546476fbc
   IQKeyboardManagerSwift: 835fc9c6e4732398113406d84900ad2e8f141218
   IQKeyboardNotification: eb4910401f5a0e68f97e71c62f8a0c5b7e9d535c
@@ -63,6 +73,6 @@ SPEC CHECKSUMS:
   IQTextInputViewNotification: 3b9fb27a16e7ee8958cc9092cfb07a1a9e1fd559
   IQTextView: ae13b4922f22e6f027f62c557d9f4f236b19d5c7
 
-PODFILE CHECKSUM: 5e302f52b032afd7e212f2daa1e2bee45bc70a2b
+PODFILE CHECKSUM: c1055625c2d016facb6882c1a6a316103665bda9
 
 COCOAPODS: 1.16.2

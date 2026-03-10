@@ -8,14 +8,19 @@
 import SwiftUI
 
 enum AppRoute: Hashable {
-
+    
     // Auth Flow
     case registration
     case login
     case forgotPassword
-
-    // Menu App
+    
     case home
+    case bookingPreview(pickupAddress: String, destinationAddress: String)
+    case getCabScreen(pickupAddress: String,
+                      destinationAddress: String,
+                      specialDisability: String,
+                      passengerCount: Int)
+    
     case history
     case booking
     case emergency

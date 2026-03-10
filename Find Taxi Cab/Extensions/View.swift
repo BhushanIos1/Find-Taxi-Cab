@@ -58,3 +58,26 @@ extension Bundle {
         ""
     }
 }
+
+extension String {
+    
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+    
+    private static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss"
+        return formatter
+    }()
+    
+    static var currentDate: String {
+        dateFormatter.string(from: Date())
+    }
+    
+    static var currentTime: String {
+        timeFormatter.string(from: Date())
+    }
+}

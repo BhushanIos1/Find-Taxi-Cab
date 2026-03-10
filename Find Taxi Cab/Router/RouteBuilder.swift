@@ -17,6 +17,20 @@ struct RouteBuilder {
         case .home:
             HomeScreen()
             
+        case .bookingPreview(let pickupAddress, let destinationAddress):
+            BookingPreview(
+                pickupAddress: pickupAddress,
+                destinationAddress: destinationAddress
+            )
+            
+        case .getCabScreen(let pickupAddress, let destinationAddress, let specialDisability, let passengerCount):
+            GetCabScreen(
+                pickupAddress: pickupAddress,
+                destinationAddress: destinationAddress,
+                disability: specialDisability,
+                numberOfPassenger: passengerCount
+            )
+            
         case .history:
             HistoryScreen()
             

@@ -9,60 +9,59 @@ import SwiftUI
 
 struct TaxiCarCell: View {
     
+    let car: TaxiCarModel
+    
     var body: some View {
         
-        HStack(spacing: 20) {
+        HStack(spacing: 10) {
             
-            // Car Image
-            Image("car_taxi") // your asset image
+            Image(car.image)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 90, height: 50)
+                .frame(width: 88, height: 56)
             
             Spacer()
             
-            // Price
             HStack(spacing: 4) {
                 Text("£")
-                    .font(.title3)
-                    .fontWeight(.semibold)
+                    .font(AppFont.font(.medium, size: 25))
                 
-                Text("20.70")
-                    .font(.headline)
+                Text(car.price, format: .number.precision(.fractionLength(2)))
+                    .font(AppFont.font(.medium, size: 16))
+                    .lineLimit(1)
             }
+            .foregroundStyle(.black)
             
             Spacer()
             
-            // Seat Count
-            HStack(spacing: 6) {
-                Image(systemName: "seat.side.rear.fill")
-                    .font(.system(size: 16))
+            HStack(spacing: 4) {
                 
-                Text("4")
-                    .font(.headline)
+                Image(systemName: "carseat.left.fill")
+                
+                Text("\(car.seats)")
             }
+            .font(AppFont.font(.medium, size: 16))
+            .foregroundStyle(.black)
             
             Spacer()
             
-            // Speed / Metric
-            HStack(spacing: 6) {
-                Image(systemName: "gauge.with.dots.needle.33percent")
-                    .font(.system(size: 16))
-                
-                Text("6")
-                    .font(.headline)
+            HStack(spacing: 4) {
+                Image(systemName: "gauge.open.with.lines.needle.33percent")
+                Text("\(car.metric)")
             }
+            .font(AppFont.font(.medium, size: 16))
+            .foregroundStyle(.black)
         }
-        .padding()
+        .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.white)
+            RoundedRectangle(cornerRadius: 4)
+                .fill(.white)
         )
         .cardStyle()
-        .padding(.horizontal)
     }
 }
 
 #Preview {
-    TaxiCarCell()
+    TaxiCarCell(car:
+                    TaxiCarModel(image: "taxi1", price: 20.75, seats: 4, metric: 2))
 }

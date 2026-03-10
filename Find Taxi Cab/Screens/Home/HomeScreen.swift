@@ -14,23 +14,47 @@ struct HomeScreen: View {
     
     @State private var presentSideMenu = false
     
-    @StateObject
-    private var locationManager = LocationManager()
-    
     @State private var showShareSheet = false
     @State private var showLogoutAlert = false
+    
+    @StateObject
+    private var locationService = LocationService()
+    
+    @State private var pickupAddress = ""
+    @State private var destinationAddress = ""
+    
+    @State private var showPlaceSearch = false
+    @State private var searchType: SearchType = .pickup
+    
+    @State private var showValidationAlert = false
+    @State private var validationMessage = ""
     
     var body: some View {
         
         ZStack {
             
-            Color.black
+            GoogleMapView()
                 .ignoresSafeArea()
             
-            homeContentView
-        }
-        .safeAreaInset(edge: .bottom) {
-            bottomSection
+            VStack {
+                
+                RideLocationCard(
+                    pickupAddress: $pickupAddress,
+                    destinationAddress: $destinationAddress,
+                    pickupTap: {
+                        searchType = .pickup
+                        showPlaceSearch = true
+                    },
+                    destinationTap: {
+                        searchType = .destination
+                        showPlaceSearch = true
+                    }
+                )
+                .padding(20)
+                
+                Spacer()
+                bottomSection
+            }
         }
         .appNavigationBar(
             title: "Home",
@@ -39,6 +63,12 @@ struct HomeScreen: View {
             withAnimation(.easeInOut) {
                 presentSideMenu.toggle()
             }
+        }
+        .onAppear {
+            locationService.requestLocation()
+        }
+        .onReceive(locationService.$currentAddress) { address in
+            pickupAddress = address
         }
         .alert("Logout",
                isPresented: $showLogoutAlert) {
@@ -57,64 +87,49 @@ struct HomeScreen: View {
                 ""
             ])
         }
+        .sheet(isPresented: $showPlaceSearch) {
+            
+            PlaceSearchView { address, coordinate in
+                
+                if searchType == .pickup {
+                    pickupAddress = address
+                } else {
+                    destinationAddress = address
+                }
+                
+            }
+        }
+        .alert("Invalid Location",
+               isPresented: $showValidationAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(validationMessage)
+        }
         .overlay(alignment: .leading) {
             
-            SideMenu(
-                isShowing: $presentSideMenu,
-                content: AnyView(
-                    SideMenuView(
-                        presentSideMenu: $presentSideMenu
-                    ) { selectedRow in
-                        handleMenuNavigation(selectedRow)
-                    }
+            ZStack(alignment: .leading) {
+                
+                if presentSideMenu {
+                    Color.black.opacity(0.35)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.easeInOut) {
+                                presentSideMenu = false
+                            }
+                        }
+                }
+                
+                SideMenu(
+                    isShowing: $presentSideMenu,
+                    content: AnyView(
+                        SideMenuView(
+                            presentSideMenu: $presentSideMenu
+                        ) { selectedRow in
+                            handleMenuNavigation(selectedRow)
+                        }
+                    )
                 )
-            )
-        }
-    }
-}
-
-/*
- if #available(iOS 17.0, *) {
- Map(
- position: .constant(
- .region(locationManager.region)
- )
- ) {
- if let coordinate = locationManager.userLocation {
- Marker("You are here", coordinate: coordinate)
- }
- }
- .mapControls {
- MapUserLocationButton()
- MapCompass()
- MapScaleView()
- }
- .ignoresSafeArea()
- } else {
- // Fallback on earlier versions
- }
- */
-
-private extension HomeScreen {
-    
-    var homeContentView: some View {
-        
-        ScrollView(showsIndicators: false) {
-            
-            VStack(spacing: 0) {
-                
-                Image("loginLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 120)
-                    .padding(.top, 120)
-                
-                Rectangle()
-                    .fill(Color.clear)
-                    .frame(height: 40)
             }
-            .padding(.horizontal, 20)
-            .frame(maxWidth: .infinity)
         }
     }
 }
@@ -124,31 +139,44 @@ private extension HomeScreen {
     var bottomSection: some View {
         
         Button {
-            validateAndLogin()
+            validateAndGetCab()
         } label: {
             Text("GET CAB")
                 .primaryButtonStyle()
         }
-        .padding(25)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 70)
     }
     
-    private func validateAndLogin() {
+    private func validateAndGetCab() {
         
-        //        emailError = email.isEmpty
-        //        ? "Email required"
-        //        : (!ValidationHelper.isValidEmail(email)
-        //           ? "Invalid email"
-        //           : nil)
-        //
-        //        passwordError = password.isEmpty
-        //        ? "Password required"
-        //        : nil
-        //
-        //        guard emailError == nil,
-        //              passwordError == nil else { return }
+        let pickup = pickupAddress.trimmingCharacters(in: .whitespacesAndNewlines)
+        let destination = destinationAddress.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        print("✅ Login Success")
-        router.push(.home)
+        if pickup.isEmpty {
+            validationMessage = "Please enter pickup location."
+            showValidationAlert = true
+            return
+        }
+        
+        if destination.isEmpty {
+            validationMessage = "Please enter destination."
+            showValidationAlert = true
+            return
+        }
+        
+        if pickup == destination {
+            validationMessage = "Pickup and destination cannot be the same."
+            showValidationAlert = true
+            return
+        }
+        
+        router.push(
+            .bookingPreview(
+                pickupAddress: pickup,
+                destinationAddress: destination
+            )
+        )
     }
 }
 

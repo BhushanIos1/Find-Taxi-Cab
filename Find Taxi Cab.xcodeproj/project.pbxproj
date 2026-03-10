@@ -84,6 +84,7 @@
 				C62DE0FE2F4E2ACF00E65D9D /* Frameworks */,
 				C62DE0FF2F4E2ACF00E65D9D /* Resources */,
 				6DBA4F20A4A497FFE2ED4B8B /* [CP] Embed Pods Frameworks */,
+				EEDD458C8B969B7E4D4655B0 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -121,6 +122,8 @@
 			);
 			mainGroup = C62DE0F82F4E2ACF00E65D9D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C62DE1022F4E2ACF00E65D9D /* Products */;
 			projectDirPath = "";
@@ -179,6 +182,23 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Find Taxi Cab/Pods-Find Taxi Cab-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		EEDD458C8B969B7E4D4655B0 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Find Taxi Cab/Pods-Find Taxi Cab-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Find Taxi Cab/Pods-Find Taxi Cab-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Find Taxi Cab/Pods-Find Taxi Cab-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
