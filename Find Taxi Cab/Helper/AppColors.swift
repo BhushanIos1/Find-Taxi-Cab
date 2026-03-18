@@ -52,4 +52,5 @@ enum AppColors {
     static let grayDarkColor = Color(hex: "#787878")
     static let yellowBorder = Color(hex: "#FFEBC0")
     static let textFieldUnderlineColor = Color(hex: "#636363")
+    static let greenAppColor = Color(hex: "#42A145")
 }

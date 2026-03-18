@@ -13,6 +13,8 @@ struct BookingListCell: View {
     
     let item: BookingItem
     
+    let shouldShowButton: Bool = true
+    
     var body: some View {
         
         VStack(alignment: .leading, spacing: 15) {
@@ -46,9 +48,26 @@ struct BookingListCell: View {
                 
                 Spacer()
                 
-                Text(item.price)
-                    .font(AppFont.font(.regular, size: 18))
-                    .foregroundColor(AppColors.grayDarkColor)
+                Group {
+                    if shouldShowButton {
+                        Button {
+                            
+                        } label: {
+                            Text("Pay")
+                                .font(AppFont.font(.medium, size: 18))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: 84)
+                                .frame(height: 50)
+                                .background(AppColors.primaryYellow)
+                                .cornerRadius(5)
+                        }
+                    } else {
+                        Text(item.price)
+                            .font(AppFont.font(.regular, size: 18))
+                            .foregroundColor(AppColors.grayDarkColor)
+                    }
+                }
+                .frame(minWidth: 84, alignment: .trailing)
             }
         }
         .padding(20)

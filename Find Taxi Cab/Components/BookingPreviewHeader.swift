@@ -26,7 +26,7 @@ struct BookingPreviewHeader: View {
             
             addressRow(
                 icon: "dot.circle",
-                color: .green,
+                color: AppColors.greenAppColor,
                 text: pickupAddress
             )
             
@@ -153,6 +153,8 @@ extension BookingPreviewHeader {
             
             if type == .advance {
                 onAdvanceTap()
+            } else {
+                selectedDate = .now
             }
             
         } label: {

@@ -28,7 +28,11 @@ struct AndroidAlertView: View {
                 action()
             } label: {
                 Text(buttonTitle)
-                    .primaryButtonStyle()
+                    .font(AppFont.font(.medium, size: 18))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(colorScheme == .dark ? AppColors.greenAppColor : Color.red)
             }
         }
         .padding(20)
@@ -37,9 +41,9 @@ struct AndroidAlertView: View {
                 .fill(colorScheme == .dark
                       ? Color(.systemGray6)
                       : Color(.white))
+                .shadow(radius: 20)
         )
         .padding(30)
-        .shadow(radius: 20)
     }
 }
 
