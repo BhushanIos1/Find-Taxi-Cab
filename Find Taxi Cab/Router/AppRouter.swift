@@ -47,4 +47,19 @@ final class AppRouter: ObservableObject {
             path.append(route)
         }
     }
+    
+    func replaceCurrent(with route: AppRoute) {
+        
+        if !routes.isEmpty {
+            routes.removeLast()
+        }
+        
+        routes.append(route)
+        
+        path = NavigationPath()
+        
+        for route in routes {
+            path.append(route)
+        }
+    }
 }

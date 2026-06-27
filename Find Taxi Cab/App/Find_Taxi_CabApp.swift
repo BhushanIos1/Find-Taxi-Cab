@@ -18,6 +18,12 @@ struct Find_Taxi_CabApp: App {
     
     @StateObject
     private var router = AppRouter()
+    
+    @StateObject
+    private var appState = AppState.shared
+    
+    @StateObject
+    private var toastManager = ToastManager()
         
     var body: some Scene {
         
@@ -34,6 +40,8 @@ struct Find_Taxi_CabApp: App {
             
             .environmentObject(router)
             .environmentObject(launchManager)
+            .environmentObject(appState)
+            .environmentObject(toastManager)
         }
     }
 }
@@ -43,21 +51,17 @@ struct RootView: View {
     @EnvironmentObject
     private var launchManager: AppLaunchManager
     
+    @EnvironmentObject
+    private var appState: AppState
+    
     var body: some View {
         
         if launchManager.shouldShowPermission {
-            
             PermissionScreen()
-            
-        }
-        //        else if !launchManager.isLoggedIn {
-        //
-        //            RegisterScreen()
-        //
-        //        }
-        else {
-            
-            LandingScreen() //Home
+        } else if appState.isLoggedIn {
+            HomeScreen()
+        } else {
+            LandingScreen()
         }
     }
 }

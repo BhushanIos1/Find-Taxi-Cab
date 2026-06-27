@@ -15,6 +15,7 @@ struct AppTextField: View {
     @Binding var text: String
     var error: String? = nil
     var keyboard: UIKeyboardType = .default
+    var foregroundColor: Color = .black
     
     @FocusState
     private var isFocused: Bool
@@ -56,6 +57,7 @@ struct AppTextField: View {
                     .focused($isFocused)
                     .font(AppFont.font(.regular, size: 18))
                     .tint(AppColors.primaryYellow)
+                    .foregroundStyle(foregroundColor)
                     .padding(.top, shouldFloat ? 12 : 0)
             }
             .frame(height: 44)
@@ -94,7 +96,7 @@ private extension AppTextField {
 }
 
 #Preview {
-    AppTextField(title: "Name", text: .constant(""))
+    AppTextField(title: "Name", text: .constant(""), foregroundColor: .black)
 }
 
 struct AppPasswordField: View {
@@ -110,6 +112,8 @@ struct AppPasswordField: View {
     
     @State
     private var isSecure: Bool = true
+    
+    var foregroundColor: Color = .black
     
     private var shouldFloat: Bool {
         isFocused || !password.isEmpty
@@ -157,6 +161,7 @@ struct AppPasswordField: View {
                     .focused($isFocused)
                     .font(AppFont.font(.regular, size: 18))
                     .tint(AppColors.primaryYellow)
+                    .foregroundStyle(foregroundColor)
                     
                     Button {
                         isSecure.toggle()
@@ -165,7 +170,7 @@ struct AppPasswordField: View {
                                 isSecure
                               ? "eye.slash"
                               : "eye")
-                        .foregroundStyle(.black)
+                        .foregroundStyle(foregroundColor)
                     }
                 }
                 .padding(.top, shouldFloat ? 12 : 0)

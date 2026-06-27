@@ -6,150 +6,97 @@
 //
 
 struct LoginResponse: Decodable {
+    
     let result: String
-    let customer_data: Customer?
-    let error: String?
+    let message: String?
+    let customerData: Customer?
+    
+    enum CodingKeys: String, CodingKey {
+        case result
+        case message
+        case customerData = "customer_data"
+    }
 }
 
 struct Customer: Decodable {
     
-    let id: String
+    let custId: String
     let email: String?
     let password: String?
-    let contactNo: String?
-    let emergencyContactNo: String?
+    
+    let phoneNo: String?
+    let emergencyContact: String?
+    
+    let custName: String?
     let address: String?
-    let postcode: String?
-    let title: String?
-    let driverName: String?
-    let driverPhoto: String?
+    let city: String?
+    let postalCode: String?
     
-    let driverLicenceNo: String?
-    let licensePhoto: String?
-    let driverLicenceExpiryDate: String?
-    let dbsLicenceExpiryDate: String?
+    let profilePhoto: String?
     
-    let hcPlateNumber: String?
-    let hcPlateExpDate: String?
-    let hcVehicleRegNo: String?
+    let cardNumber: String?
+    let cardHolderName: String?
+    let cardMonth: String?
+    let cardYear: String?
+    let cvv: String?
     
-    let motExpDate: String?
-    let vehInsExpDate: String?
+    let customerLat: String?
+    let customerLng: String?
     
-    let badgeNumber: String?
-    let badgePhoto: String?
-    let badgeExpiryDate: String?
+    let accountStatus: String?
+    let status: String?
     
-    let vehicleSeater: String?
-    let vehicleNo: String?
-    let vehicleMake: String?
-    let vehicleModel: String?
-    let vehicleAmenities: String?
-    let wheelchair: String?
+    let accountCreated: String?
+    let addedOn: String?
     
-    let vehicleInsuranceCompany: String?
-    let vehicleInsuranceExpiry: String?
-    let vehicleInsurancePhoto: String?
-    
-    let percent: String?
-    
-    let driverLat: String?
-    let driverLng: String?
-    let currentLocation: String?
-    
-    let bankAccountName: String?
-    let bankName: String?
-    let bankAccountNumber: String?
-    let bankAddress: String?
-    let bankCode: String?
+    let companyId: String?
     
     let forgotToken: String?
     
-    let totalEarned: String?
-    let acceptedJobs: String?
-    let rejectedJobs: String?
-    
-    let workStatus: String?
-    let accountStatus: String?
-    
-    let addedAt: String?
-    let statusDate: String?
-    let statusTime: String?
-    
     let token: String?
     let deviceType: String?
-    let handAmount: String?
 }
 
 extension Customer {
     
     enum CodingKeys: String, CodingKey {
         
-        case id
+        case custId = "custid"
+        
         case email
         case password
-        case contactNo = "contact_no"
-        case emergencyContactNo = "emergency_contact_no"
+        
+        case phoneNo = "phoneno"
+        case emergencyContact = "emerngency_contact"
+        
+        case custName = "cust_name"
         case address
-        case postcode
-        case title
-        case driverName
-        case driverPhoto = "driver_photo"
+        case city
         
-        case driverLicenceNo
-        case licensePhoto = "license_photo"
-        case driverLicenceExpiryDate
-        case dbsLicenceExpiryDate
+        case postalCode = "postalcode"
         
-        case hcPlateNumber = "hc_plate_number"
-        case hcPlateExpDate = "hc_plate_exp_date"
-        case hcVehicleRegNo = "hc_vehicle_reg_no"
+        case profilePhoto = "profile_photo"
         
-        case motExpDate = "mot_exp_date"
-        case vehInsExpDate = "veh_ins_exp_date"
+        case cardNumber = "card_number"
+        case cardHolderName = "card_holder_name"
+        case cardMonth = "card_month"
+        case cardYear = "card_year"
+        case cvv
         
-        case badgeNumber
-        case badgePhoto = "badge_photo"
-        case badgeExpiryDate
+        case customerLat = "customer_lat"
+        case customerLng = "customer_lng"
         
-        case vehicleSeater = "vehicle_seater"
-        case vehicleNo = "vehicle_no"
-        case vehicleMake = "vehicle_make"
-        case vehicleModel = "vehicle_model"
-        case vehicleAmenities = "vehicle_amenities"
-        case wheelchair
+        case accountStatus = "acctount_status"
+        case status
         
-        case vehicleInsuranceCompany = "vehicle_insuarance_company"
-        case vehicleInsuranceExpiry = "vehicle_insuarance_expiry"
-        case vehicleInsurancePhoto = "vehicle_insuarance_photo"
+        case accountCreated = "account_created"
+        case addedOn = "added_on"
         
-        case percent
-        
-        case driverLat = "driver_lat"
-        case driverLng = "driver_lng"
-        case currentLocation = "current_location"
-        
-        case bankAccountName = "bank_account_name"
-        case bankName = "bank_name"
-        case bankAccountNumber = "bank_account_number"
-        case bankAddress = "bank_address"
-        case bankCode = "bank_code"
+        case companyId = "company_id"
         
         case forgotToken = "forgot_token"
         
-        case totalEarned = "total_earned"
-        case acceptedJobs = "accpted_jobs"
-        case rejectedJobs = "rejected_jobs"
-        
-        case workStatus = "work_status"
-        case accountStatus = "acctount_status"
-        
-        case addedAt = "added_at"
-        case statusDate = "status_date"
-        case statusTime = "status_time"
-        
         case token
         case deviceType = "device_type"
-        case handAmount = "hand_amount"
     }
 }

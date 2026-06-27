@@ -1,6 +1,6 @@
 //
 //  APIResponse.swift
-//  Find Taxi Cab Driver
+//  Find Taxi Cab
 //
 //  Created by Bhushan Kumar on 21/03/26.
 //
@@ -14,7 +14,7 @@ struct APIResponse<T: Decodable>: Decodable {
     
     var isSuccess: Bool {
         if result == "success" { return true }
-        if success == 1 { return true }
+        if success == 1 || success == 200 { return true }
         return false
     }
 }

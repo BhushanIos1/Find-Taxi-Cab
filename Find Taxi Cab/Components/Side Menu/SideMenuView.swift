@@ -71,7 +71,7 @@ private extension SideMenuView {
                     .font(AppFont.font(.medium, size: 20))
                     .foregroundColor(.white)
                 
-                Text("Bhushan Kumar")
+                Text(AuthManager.shared.customerName)
                     .font(AppFont.font(.regular, size: 16))
                     .foregroundColor(.white)
             }

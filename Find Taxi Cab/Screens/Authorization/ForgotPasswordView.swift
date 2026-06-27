@@ -6,14 +6,21 @@
 //
 
 import SwiftUI
+import SwiftfulLoadingIndicators
 
 struct ForgotPasswordView: View {
     
     @EnvironmentObject
     private var router: AppRouter
     
+    @EnvironmentObject
+    private var toastManager: ToastManager
+    
     @State private var email = ""
     @State private var emailError: String?
+    
+    @StateObject
+    private var viewModel = RegisterViewModel()
     
     var body: some View {
         
@@ -37,7 +44,8 @@ struct ForgotPasswordView: View {
                         title: "Email",
                         text: $email,
                         error: emailError,
-                        keyboard: .emailAddress
+                        keyboard: .emailAddress,
+                        foregroundColor: .black
                     )
                     .padding(10)
                     .background(.white)
@@ -53,6 +61,20 @@ struct ForgotPasswordView: View {
                 .padding(.horizontal, 20)
                 .frame(maxWidth: .infinity)
             }
+            
+            if viewModel.isLoading {
+                
+                Color.clear
+                    .contentShape(Rectangle())
+                    .ignoresSafeArea()
+                
+                LoadingIndicator(
+                    animation: .circleTrim,
+                    color: AppColors.primaryYellow,
+                    size: .medium,
+                    speed: .normal
+                )
+            }
         }
         .appNavigationBar(
             title: "Forgot Password",
@@ -60,6 +82,40 @@ struct ForgotPasswordView: View {
         ) {
             router.pop()
         }
+        .onChange(of: viewModel.registrationState) { state in
+            
+            guard let state else { return }
+            
+            switch state {
+                
+            case .success(let message):
+                
+                toastManager.showToast(
+                    type: .success,
+                    title: "Success",
+                    subtitle: message
+                )
+                
+                viewModel.errorMessage = nil
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    router.pop()
+                }
+                
+            case .failure(let message):
+                
+                toastManager.showToast(
+                    type: .error,
+                    title: "Failed",
+                    subtitle: message
+                )
+            }
+            
+            DispatchQueue.main.async {
+                viewModel.registrationState = nil
+            }
+        }
+        .overlay(GlobalToastView().environmentObject(toastManager))
     }
 }
 
@@ -75,7 +131,7 @@ private extension ForgotPasswordView {
         
         guard emailError == nil else { return }
         
-        print("✅ Success")
+        viewModel.forgotPassword(email: email, router: router)
     }
 }
 

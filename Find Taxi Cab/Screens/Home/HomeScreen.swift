@@ -6,11 +6,15 @@
 //
 
 import SwiftUI
+import SwiftfulLoadingIndicators
 
 struct HomeScreen: View {
     
     @EnvironmentObject
     private var router: AppRouter
+    
+    @EnvironmentObject
+    private var toastManager: ToastManager
     
     @State private var presentSideMenu = false
     
@@ -23,11 +27,25 @@ struct HomeScreen: View {
     @State private var pickupAddress = ""
     @State private var destinationAddress = ""
     
+    @State private var currentLat = Double()
+    @State private var currentLong = Double()
+    
+    @State private var destinationLat = Double()
+    @State private var destinationLong = Double()
+    
     @State private var showPlaceSearch = false
     @State private var searchType: SearchType = .pickup
     
     @State private var showValidationAlert = false
     @State private var validationMessage = ""
+    
+    @StateObject
+    private var viewModel = RegisterViewModel()
+    
+    @StateObject
+    private var homeViewModel = HomeViewModel()
+    
+    @State private var locationTimer = Timer.publish(every: 20, on: .main, in: .common).autoconnect()
     
     var body: some View {
         
@@ -55,6 +73,20 @@ struct HomeScreen: View {
                 Spacer()
                 bottomSection
             }
+            
+            if viewModel.isLoading {
+                
+                Color.black.opacity(0.25)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(true)
+                
+                LoadingIndicator(
+                    animation: .circleTrim,
+                    color: AppColors.primaryYellow,
+                    size: .medium,
+                    speed: .normal
+                )
+            }
         }
         .appNavigationBar(
             title: "Home",
@@ -66,17 +98,71 @@ struct HomeScreen: View {
         }
         .onAppear {
             locationService.requestLocation()
+            locationService.startTracking()
         }
-        .onReceive(locationService.$currentAddress) { address in
+        .onChange(of: locationService.currentAddress) { address in
+            
             pickupAddress = address
+            
+            if let location = locationService.currentLocation {
+                currentLat = location.coordinate.latitude
+                currentLong = location.coordinate.longitude
+            }
+        }
+        .onChange(of: homeViewModel.homeState) { state in
+            
+            guard let state else { return }
+            
+            switch state {
+                
+            case .success(let message):
+                
+                toastManager.showToast(
+                    type: .success,
+                    title: "Success",
+                    subtitle: message
+                )
+                
+                viewModel.errorMessage = nil
+                
+            case .failure(let message):
+                
+                toastManager.showToast(
+                    type: .error,
+                    title: "Failed",
+                    subtitle: message
+                )
+            }
+            
+            DispatchQueue.main.async {
+                homeViewModel.homeState = nil
+            }
+        }
+        .onReceive(locationTimer) { _ in
+            
+            guard let location = locationService.currentLocation else {
+                print("❌ currentLocation is nil")
+                return
+            }
+            
+            homeViewModel.updateLocation(
+                latitude: location.coordinate.latitude,
+                longitude: location.coordinate.longitude
+            )
         }
         .alert("Logout",
                isPresented: $showLogoutAlert) {
             
-            Button("NO", role: .cancel) { }
+            Button("NO", role: .cancel) {
+                viewModel.deleteAccount(id: "\(AuthManager.shared.customerId)", router: router)
+                
+                router.push(.landingPage)
+            }
             
             Button("YES", role: .destructive) {
-                //performLogout()
+                viewModel.logOut(id: "\(AuthManager.shared.customerId)", router: router)
+                
+                router.push(.landingPage)
             }
         } message: {
             Text("Are you sure you want to log out?")
@@ -93,10 +179,13 @@ struct HomeScreen: View {
                 
                 if searchType == .pickup {
                     pickupAddress = address
+                    currentLat = coordinate.latitude
+                    currentLong = coordinate.longitude
                 } else {
                     destinationAddress = address
+                    destinationLat = coordinate.latitude
+                    destinationLong = coordinate.longitude
                 }
-                
             }
         }
         .alert("Invalid Location",
@@ -131,6 +220,7 @@ struct HomeScreen: View {
                 )
             }
         }
+        .overlay(GlobalToastView().environmentObject(toastManager))
     }
 }
 
@@ -170,13 +260,10 @@ private extension HomeScreen {
             showValidationAlert = true
             return
         }
-        
-        router.push(
-            .bookingPreview(
-                pickupAddress: pickup,
-                destinationAddress: destination
-            )
-        )
+                router.push(
+                    .bookingPreview(pickupAddress: pickupAddress, destinationAddress: destinationAddress, fromLat: currentLat, fromLong: currentLong, toLat: destinationLat, toLong: destinationLong)
+                )
+        //homeViewModel.getNearDrivers(latitude: currentLat, longitude: currentLong)
     }
 }
 

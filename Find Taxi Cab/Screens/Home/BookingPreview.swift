@@ -15,6 +15,11 @@ struct BookingPreview: View {
     let pickupAddress: String
     let destinationAddress: String
     
+    let fromLat: Double
+    let fromLong: Double
+    let toLat: Double
+    let toLong: Double
+    
     @State private var selectedDisability: DisabilityOption? = nil
     @State private var passengers = 1
     
@@ -66,21 +71,25 @@ private extension BookingPreview {
     var getCabButton: some View {
         
         Button {
+            
+            print("\(fromLat)")
+            print("\(fromLong)")
+            print("\(toLat)")
+            print("\(toLong)")
+            
             router.push(
-                .getCabScreen(
-                    pickupAddress: pickupAddress,
-                    destinationAddress: destinationAddress,
-                    specialDisability: selectedDisability?.rawValue ?? "",
-                    passengerCount: passengers
-                )
+                .getCabScreen(pickupAddress: pickupAddress,
+                              destinationAddress: destinationAddress,
+                              fromLat: fromLat,
+                              fromLong: fromLong,
+                              toLat: toLat,
+                              toLong: toLong,
+                              specialDisability: selectedDisability?.rawValue ?? "",
+                              passengerCount: passengers)
             )
         } label: {
             Text("GET CAB")
                 .primaryButtonStyle()
         }
     }
-}
-
-#Preview {
-    BookingPreview(pickupAddress: "", destinationAddress: "")
 }

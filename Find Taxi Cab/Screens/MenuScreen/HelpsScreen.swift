@@ -6,11 +6,18 @@
 //
 
 import SwiftUI
+import SwiftfulLoadingIndicators
 
 struct HelpsScreen: View {
     
     @EnvironmentObject
     private var router: AppRouter
+    
+    @EnvironmentObject
+    private var toastManager: ToastManager
+    
+    @StateObject
+    private var viewModel = StaticViewModel()
     
     var body: some View {
         
@@ -41,12 +48,33 @@ struct HelpsScreen: View {
                 )
                 .padding(20)
             }
+            
+            if viewModel.isLoading {
+                
+                Color.black.opacity(0.25)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(true)
+                
+                LoadingIndicator(
+                    animation: .circleTrim,
+                    color: AppColors.primaryYellow,
+                    size: .medium,
+                    speed: .normal
+                )
+            }
         }
         .appNavigationBar(
             title: "Help",
             leading: .back) {
                 router.pop()
             }
+            .onAppear {
+                viewModel.getHelp()
+            }
+            .overlay(
+                GlobalToastView()
+                    .environmentObject(toastManager)
+            )
     }
 }
 

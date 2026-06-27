@@ -1,6 +1,6 @@
 //
 //  Endpoint.swift
-//  Find Taxi Cab Driver
+//  Find Taxi Cab
 //
 //  Created by Bhushan Kumar on 21/03/26.
 //
@@ -27,76 +27,236 @@ extension Endpoint {
     }
 }
 
-enum DriverAPI: Endpoint {
+enum CustomerAPI: Endpoint {
     
-    case login(email: String,
-               password: String,
-               token: String)
     case register(
-        name: String,
         email: String,
         phone: String,
         password: String,
+        cardNumber: String,
+        profilePhoto: String?
+    )
+    
+    case login(
+        email: String,
+        password: String,
+        token: String
+    )
+    
+    case logout
+    
+    case forgotPassword(email: String)
+    
+    case changePassword(password: String)
+    
+    case updateProfile(
+        profilePhoto: String?
+    )
+    
+    case updateCustomerProfile(
+        name: String,
         address: String
     )
-    case forgotPassword(email: String)
-    case changePassword(password: String)
-    case updateProfile(
-        driverName: String,
-        contactNo: String,
-        address: String,
-        bankAccountNumber: String,
-        driverPhoto: String?
-    )
-    case logout
-    case changeStatus(status: String)
-    case updateLocation(lat: String, lng: String)
+    
+    case deleteCustomer
+    
     case updateFCMToken(token: String)
+    
+    case updateLocation(
+        lat: String,
+        lng: String
+    )
+    
+    case getCustomerStatus
+    
+    case getNearDrivers(
+        lat: String,
+        lng: String
+    )
+    
+    case editCardDetails(parameters: Parameters)
+    
+    case getCardDetails
+    
+    case customerFeedback(
+        bookingId: String,
+        feedback: String,
+        rate: String
+    )
+    
     case lastBooking
+    
     case bookingList
-    case updateBankDetails(parameters: Parameters)
-    case paymentHistory
-    case customerFeedback
-    case checkAccountStatus
-    case getDriverLatLng
-    case getDriverStatus
-    case getNearClients(lat: String, lng: String)
-    case driverFeedback(bookingId: String, feedback: String, rate: String)
+    
+    case vehicleList(
+        latFrom: String,
+        longFrom: String,
+        latTo: String,
+        longTo: String,
+        date: String,
+        time: String,
+        passengers: String,
+        specialNeed: String
+    )
+    
+    case createBooking(
+        pickupAddress: String,
+        dropAddress: String,
+        vehicleType: String,
+        passengers: String,
+        specialNeed: String,
+        latFrom: String,
+        longFrom: String,
+        latTo: String,
+        longTo: String,
+        date: String?,
+        time: String?
+    )
+    
+    case getBookingData(bookingId: String)
+    
+    case cancelBooking(bookingId: String)
+    
+    case getBookingStatus(bookingId: String)
+    
+    case getBookingDataToClient(bookingId: String)
+    
+    case calculateFare(
+        bookingId: String,
+        price: String,
+        tollCharge: String,
+        customerRate: String,
+        feedback: String
+    )
+    
+    case getFareDetails(bookingId: String)
+    
+    case aboutUs
+    case promotions
+    case help
 }
 
-extension DriverAPI {
+extension CustomerAPI {
     
     var path: String {
-        switch self {
-        case .login: return "/driver_login"
-        case .register: return "/register_driver"
-        case .forgotPassword: return "/reset_pass"
-        case .changePassword: return "/driver_change_pass"
-        case .updateProfile: return "/update_driver_profile"
-        case .logout: return "/logout_driver"
-        case .changeStatus: return "/change_status"
-        case .updateLocation: return "/driver_location"
-        case .updateFCMToken: return "/update_drivertoken"
-        case .lastBooking: return "/driver_last_book"
-        case .bookingList: return "/driver_book_list"
-        case .updateBankDetails: return "/driver_update_bank"
-        case .paymentHistory: return "/payment_history_driver"
-        case .customerFeedback: return "/customer_feedback_data"
-        case .checkAccountStatus: return "/check_account_status"
-        case .getDriverLatLng: return "/get_driverlatlng"
-        case .getDriverStatus: return "/get_driver_status"
-        case .getNearClients: return "/get_nearclient"
-        case .driverFeedback: return "/driver_feedback"
-        }
-    }
-    
-    var parameters: Parameters? {
-        
-        let driverId = AuthManager.shared.driverId
         
         switch self {
             
-        case .login(let email, let password, let token):
+        case .register:
+            return "/register_user"
+            
+        case .login:
+            return "/user_login"
+            
+        case .logout:
+            return "/user_logout"
+            
+        case .forgotPassword:
+            return "/reset_pass_customer"
+            
+        case .changePassword:
+            return "/customer_change_pass"
+            
+        case .updateProfile:
+            return "/update_user_profile"
+            
+        case .updateCustomerProfile:
+            return "/update_customer_profile"
+            
+        case .deleteCustomer:
+            return "/delete_customer"
+            
+        case .updateFCMToken:
+            return "/update_clienttoken"
+            
+        case .updateLocation:
+            return "/client_location"
+            
+        case .getCustomerStatus:
+            return "/get_customer_status"
+            
+        case .getNearDrivers:
+            return "/get_neardriver"
+            
+        case .editCardDetails:
+            return "/edit_card_detaile"
+            
+        case .getCardDetails:
+            return "/get_card_details"
+            
+        case .customerFeedback:
+            return "/customer_feedback"
+            
+        case .lastBooking:
+            return "/client_last_book"
+            
+        case .bookingList:
+            return "/get_book_list"
+            
+        case .vehicleList:
+            return "/vehicle_list"
+            
+        case .createBooking:
+            return "/add_booking"
+            
+        case .getBookingData:
+            return "/get_bookdata"
+            
+        case .cancelBooking:
+            return "/cancel_book_client"
+            
+        case .getBookingStatus:
+            return "/get_book_status"
+            
+        case .getBookingDataToClient:
+            return "/get_bookdatatoclient"
+            
+        case .calculateFare:
+            return "/miles_cal"
+            
+        case .getFareDetails:
+            return "/get_fair"
+            
+        case .aboutUs:
+            return "/aboutus_user"
+
+        case .promotions:
+            return "/promotion_user"
+
+        case .help:
+            return "/help_user"
+        }
+    }
+}
+
+extension CustomerAPI {
+    
+    var parameters: Parameters? {
+        
+        let custId = AuthManager.shared.customerId
+        
+        switch self {
+            
+        case .register(
+            let email,
+            let phone,
+            let password,
+            let cardNumber,
+            let profilePhoto
+        ):
+            return [
+                "email": email,
+                "phoneno": phone,
+                "password": password,
+                "card_number": cardNumber,
+                "profile_photo": profilePhoto ?? ""
+            ]
+            
+        case .login(
+            let email,
+            let password,
+            let token
+        ):
             return [
                 "email": email,
                 "password": password,
@@ -104,114 +264,205 @@ extension DriverAPI {
                 "device_type": "ios"
             ]
             
-        case .register(_, let email, let phone, let password, _):
+        case .logout:
             return [
-                "email": email,
-                "contact_no": phone,
-                "password": password
+                "custid": custId
             ]
             
         case .forgotPassword(let email):
             return [
-                "driver_id": email
+                "email": email
             ]
             
         case .changePassword(let password):
             return [
-                "driver_id": driverId,
+                "custid": custId,
                 "password": password
             ]
             
-        case .updateProfile(
-            let driverName,
-            let contactNo,
-            let address,
-            let bankAccountNumber,
-            let driverPhoto
+        case .updateProfile(let profilePhoto):
+            return [
+                "custid": custId,
+                "profile_photo": profilePhoto ?? ""
+            ]
+            
+        case .updateCustomerProfile(
+            let name,
+            let address
         ):
             return [
-                "driver_id": driverId,
-                "driverName": driverName,
-                "contact_no": contactNo,
-                "address": address,
-                "bank_account_number": bankAccountNumber,
-                "driver_photo": driverPhoto ?? ""
+                "custid": custId,
+                "cust_name": name,
+                "address": address
             ]
             
-        case .logout:
-            return ["driver_id": driverId]
-            
-        case .changeStatus(let status):
+        case .deleteCustomer:
             return [
-                "driver_id": driverId,
-                "status": status
+                "custid": custId
             ]
             
-        case .updateLocation(let lat, let lng):
-            return [
-                "driver_id": driverId,
-                "latitude": lat,
-                "longitude": lng,
-                "date": Date().apiDate,
-                "time": Date().apiTime,
-                "booking_id": ""
-            ]
         case .updateFCMToken(let token):
             return [
-                "driver_id": driverId,
+                "client_id": custId,
                 "token": token
             ]
             
-        case .lastBooking:
+        case .updateLocation(
+            let lat,
+            let lng
+        ):
             return [
-                "driver_id": driverId
+                "client_id": custId,
+                "latitude": lat,
+                "longitude": lng
             ]
             
-        case .bookingList:
-            return ["driver_id": driverId]
-            
-        case .updateBankDetails(let parameters):
-            var params = parameters
-            params["driver_id"] = driverId
-            return params
-            
-        case .paymentHistory:
+        case .getCustomerStatus:
             return [
-                "driver_id": driverId
+                "cust_id": custId
             ]
             
-        case .customerFeedback:
-            return [
-                "driver_id": driverId
-            ]
-            
-        case .checkAccountStatus:
-            return [
-                "id": driverId
-            ]
-            
-        case .getDriverLatLng:
-            return [
-                "driver_id": driverId
-            ]
-            
-        case .getDriverStatus:
-            return [
-                "driver_id": driverId
-            ]
-            
-        case .getNearClients(let lat, let lng):
+        case .getNearDrivers(
+            let lat,
+            let lng
+        ):
             return [
                 "lat": lat,
                 "long": lng
             ]
             
-        case .driverFeedback(let bookingId, let feedback, let rate):
+        case .editCardDetails(let parameters):
+            
+            var params = parameters
+            params["custid"] = custId
+            return params
+            
+        case .getCardDetails:
+            return [
+                "custid": custId
+            ]
+            
+        case .customerFeedback(
+            let bookingId,
+            let feedback,
+            let rate
+        ):
             return [
                 "booking_id": bookingId,
                 "feedback": feedback,
-                "rate": rate
+                "customer_rate": rate
             ]
+            
+        case .lastBooking:
+            return [
+                "cust_id": custId
+            ]
+            
+        case .bookingList:
+            return [
+                "client_id": custId
+            ]
+            
+        case .vehicleList(
+            let latFrom,
+            let longFrom,
+            let latTo,
+            let longTo,
+            let date,
+            let time,
+            let passengers,
+            let specialNeed
+        ):
+            return [
+                "user_id": custId,
+                "latfrom": latFrom,
+                "longifrom": longFrom,
+                "latto": latTo,
+                "longto": longTo,
+                "date": date,
+                "time": time,
+                "passengers": passengers,
+                "special_need": specialNeed
+            ]
+            
+        case .createBooking(
+            let pickupAddress,
+            let dropAddress,
+            let vehicleType,
+            let passengers,
+            let specialNeed,
+            let latFrom,
+            let longFrom,
+            let latTo,
+            let longTo,
+            let date,
+            let time
+        ):
+            return [
+                "customer_id": custId,
+                "pickupaddress": pickupAddress,
+                "dropaddress": dropAddress,
+                "vehicle_type": vehicleType,
+                "passengers": passengers,
+                "special_need": specialNeed,
+                "latfrom": latFrom,
+                "longifrom": longFrom,
+                "latto": latTo,
+                "longto": longTo,
+                "date": date ?? "",
+                "time": time ?? ""
+            ]
+            
+        case .getBookingData(let bookingId):
+            return [
+                "id": custId,
+                "booking_id": bookingId
+            ]
+            
+        case .cancelBooking(let bookingId):
+            return [
+                "booking_id": bookingId,
+                "assign_status": "cancel"
+            ]
+            
+        case .getBookingStatus(let bookingId):
+            return [
+                "booking_id": bookingId
+            ]
+            
+        case .getBookingDataToClient(let bookingId):
+            return [
+                "book_id": bookingId
+            ]
+            
+        case .calculateFare(
+            let bookingId,
+            let price,
+            let tollCharge,
+            let customerRate,
+            let feedback
+        ):
+            return [
+                "book_id": bookingId,
+                "price": price,
+                "toll_charge": tollCharge,
+                "customer_rate": customerRate,
+                "feedback": feedback
+            ]
+            
+        case .getFareDetails(let bookingId):
+            return [
+                "booking_id": bookingId
+            ]
+            
+        case .aboutUs:
+            return nil
+
+        case .promotions:
+            return nil
+
+        case .help:
+            return nil
         }
     }
 }

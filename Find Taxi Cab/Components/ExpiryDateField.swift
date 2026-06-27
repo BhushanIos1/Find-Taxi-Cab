@@ -74,7 +74,7 @@ private extension ExpiryDateField {
                 
                 Text(value.isEmpty ? title : value)
                     .foregroundStyle(
-                        value.isEmpty ? AppColors.textFieldUnderlineColor : .black
+                        value.isEmpty ? AppColors.textFieldUnderlineColor : Color(uiColor: .label)
                     )
                 
                 Spacer()

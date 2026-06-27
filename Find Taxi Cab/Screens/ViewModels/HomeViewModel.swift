@@ -1,6 +1,6 @@
 //
 //  HomeViewModel.swift
-//  Find Taxi Cab Driver
+//  Find Taxi Cab
 //
 //  Created by Bhushan Kumar on 18/06/26.
 //
@@ -19,89 +19,9 @@ final class HomeViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var homeState: HomeState?
     
-    @Published var driverStatus: DriverStatus = .free
+    @Published var nearbyDrivers: [NearDriver] = []
     
-    init() {
-        driverStatus = DriverStatus(rawValue: AuthManager.shared.workStatus) ?? .free
-    }
-    
-    // MARK: - Change Driver Status
-    
-    func syncStatusOnAppear() {
-        
-        let savedStatus = AuthManager.shared.workStatus
-        
-        guard !savedStatus.isEmpty else { return }
-        
-        Task {
-            
-            do {
-                
-                let response: CommonResponse =
-                try await APIClient.shared.request(
-                    DriverAPI.changeStatus(status: savedStatus),
-                    responseType: CommonResponse.self
-                )
-                
-                print("✅ STATUS SYNC")
-                print(response)
-                
-            } catch {
-                print("❌ STATUS SYNC ERROR")
-                print(error)
-            }
-        }
-    }
-    
-    func changeStatus() {
-        
-        guard !isLoading else { return }
-        
-        isLoading = true
-        errorMessage = nil
-        
-        let newStatus: DriverStatus = driverStatus == .free ? .busy : .free
-        
-        Task {
-            
-            defer {
-                isLoading = false
-            }
-            
-            do {
-                
-                let response: CommonResponse =
-                try await APIClient.shared.request(
-                    DriverAPI.changeStatus(
-                        status: newStatus.rawValue
-                    ),
-                    responseType: CommonResponse.self
-                )
-                
-                if response.result == "success" {
-                    
-                    driverStatus = newStatus
-                    
-                    AuthManager.shared.workStatus = newStatus.rawValue
-                                        
-                    homeState = .success(response.message ?? "Status Updated")
-                    
-                } else {
-                    
-                    let message = response.message ?? "Failed"
-                    errorMessage = message
-                    homeState = .failure(message)
-                }
-                
-            } catch {
-                
-                errorMessage = error.localizedDescription
-                homeState = .failure(error.localizedDescription)
-            }
-        }
-    }
-    
-    // MARK: - Update Driver Location
+    // MARK: - Update Customer Location
     
     func updateLocation(latitude: Double, longitude: Double) {
         
@@ -110,7 +30,7 @@ final class HomeViewModel: ObservableObject {
             do {
                 
                 let response: CommonResponse = try await APIClient.shared.request(
-                    DriverAPI.updateLocation(lat: "\(latitude)", lng: "\(longitude)"),
+                    CustomerAPI.updateLocation(lat: "\(latitude)", lng: "\(longitude)"),
                     responseType: CommonResponse.self)
                 
                 print("📍 LOCATION UPDATED:", response.result ?? "")
@@ -122,31 +42,98 @@ final class HomeViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Update FCM Token
-    
-    func updateDriverToken() {
+    func getNearDrivers(latitude: Double, longitude: Double) {
         
-        guard let token = FCMTokenManager.shared.getToken(),
-              !token.isEmpty else {
-            
-            print("❌ FCM TOKEN NOT FOUND")
-            return
-        }
+        guard !isLoading else { return }
+        
+        isLoading = true
+        errorMessage = nil
         
         Task {
             
+            defer { isLoading = false }
+            
             do {
                 
-                let response: CommonResponse = try await APIClient.shared.request(
-                    DriverAPI.updateFCMToken(token: token),
-                    responseType: CommonResponse.self
+                let response: NearDriversResponse = try await APIClient.shared.request(
+                    CustomerAPI.getNearDrivers(
+                        lat: "\(latitude)",
+                        lng: "\(longitude)"
+                    ),
+                    responseType: NearDriversResponse.self
                 )
                 
-                print("🔥 TOKEN UPDATED:", response.result ?? "")
+                if response.success == 1 {
+                    
+                    nearbyDrivers = response.driverData ?? []
+                    
+                    print("✅ NEAR DRIVERS FOUND")
+                    print("COUNT:", nearbyDrivers.count)
+                    
+                    isLoading = false
+                    homeState = .success("")
+                    
+                } else {
+                    
+                    nearbyDrivers = []
+                    
+                    let message = response.error ?? "❌ NO DRIVERS"
+                    print(response.error ?? "")
+                    
+                    errorMessage = message
+                    homeState = .failure(message)
+                }
                 
             } catch {
-                print("❌ TOKEN UPDATE ERROR:", error)
+                
+                print("❌ GET NEAR DRIVERS ERROR")
+                print(error)
+                
+                errorMessage = error.localizedDescription
+                homeState = .failure(error.localizedDescription)
             }
         }
+    }
+}
+
+struct NearDriversResponse: Decodable {
+    
+    let success: Int
+    let driverData: [NearDriver]?
+    let error: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case success
+        case driverData = "driver_data"
+        case error
+    }
+}
+
+struct NearDriver: Decodable, Identifiable {
+    
+    let id: String
+    
+    let driverName: String?
+    let driverPhoto: String?
+    let driverLat: String?
+    let driverLng: String?
+    let vehicleNo: String?
+    let vehicleMake: String?
+    let vehicleModel: String?
+    let vehicleSeater: String?
+    let workStatus: String?
+    
+    enum CodingKeys: String, CodingKey {
+        
+        case id
+        case driverName
+        case driverPhoto = "driver_photo"
+        case driverLat = "driver_lat"
+        case driverLng = "driver_lng"
+        case vehicleNo = "vehicle_no"
+        case vehicleMake = "vehicle_make"
+        case vehicleModel = "vehicle_model"
+        case vehicleSeater = "vehicle_seater"
+        case workStatus = "work_status"
     }
 }

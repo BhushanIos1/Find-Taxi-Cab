@@ -6,17 +6,24 @@
 //
 
 import SwiftUI
+import SwiftfulLoadingIndicators
 
 struct LoginScreen: View {
     
     @EnvironmentObject
     private var router: AppRouter
     
+    @EnvironmentObject
+    private var toastManager: ToastManager
+    
     @State private var email = ""
     @State private var emailError: String?
     
     @State private var password = ""
     @State private var passwordError: String?
+    
+    @StateObject
+    private var viewModel = LoginViewModel()
     
     var body: some View {
         
@@ -43,6 +50,20 @@ struct LoginScreen: View {
                 .padding(.horizontal, 20)
                 .frame(maxWidth: .infinity)
             }
+            
+            if viewModel.isLoading {
+                
+                Color.clear
+                    .contentShape(Rectangle())
+                    .ignoresSafeArea()
+                
+                LoadingIndicator(
+                    animation: .circleTrim,
+                    color: AppColors.primaryYellow,
+                    size: .medium,
+                    speed: .normal
+                )
+            }
         }
         .appNavigationBar(
             title: "Sign In",
@@ -50,6 +71,43 @@ struct LoginScreen: View {
         ) {
             router.pop()
         }
+        .onAppear {
+            FCMTokenManager.shared.refreshToken { token in
+                print("Fresh FCM:", token ?? "nil")
+            }
+        }
+        .onChange(of: viewModel.loginState) { state in
+            
+            guard let state else { return }
+            
+            switch state {
+                
+            case .success(let message):
+                
+                toastManager.showToast(
+                    type: .success,
+                    title: "Success",
+                    subtitle: message
+                )
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    router.push(.home)
+                }
+                
+            case .failure(let message):
+                
+                toastManager.showToast(
+                    type: .error,
+                    title: "Login Failed",
+                    subtitle: message
+                )
+            }
+            
+            DispatchQueue.main.async {
+                viewModel.loginState = nil
+            }
+        }
+        .overlay(GlobalToastView().environmentObject(toastManager))
     }
 }
 
@@ -63,7 +121,8 @@ private extension LoginScreen {
                 title: "Email",
                 text: $email,
                 error: emailError,
-                keyboard: .emailAddress
+                keyboard: .emailAddress,
+                foregroundColor: .black
             )
             .padding(10)
             .background(.white)
@@ -71,7 +130,8 @@ private extension LoginScreen {
             AppPasswordField(
                 title: "Password",
                 password: $password,
-                error: passwordError
+                error: passwordError,
+                foregroundColor: .black
             )
             .padding(10)
             .background(.white)
@@ -106,21 +166,30 @@ private extension LoginScreen {
     
     private func validateAndLogin() {
         
-//        emailError = email.isEmpty
-//        ? "Email required"
-//        : (!ValidationHelper.isValidEmail(email)
-//           ? "Invalid email"
-//           : nil)
-//        
-//        passwordError = password.isEmpty
-//        ? "Password required"
-//        : nil
-//        
-//        guard emailError == nil,
-//              passwordError == nil else { return }
+        var isValid = true
         
-        print("✅ Login Success")
-        router.push(.home)
+        if email.isEmpty {
+            emailError = "Email is required"
+            isValid = false
+        } else if !ValidationHelper.isValidEmail(email) {
+            emailError = "Enter valid email"
+            isValid = false
+        } else {
+            emailError = nil
+        }
+        
+        if password.isEmpty {
+            passwordError = "Password required"
+            isValid = false
+        } else {
+            passwordError = nil
+        }
+        
+        guard isValid else { return }
+        
+        viewModel.login(email: email,
+                        password: password,
+                        router: router)
     }
 }
 

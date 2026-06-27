@@ -9,13 +9,13 @@ import SwiftUI
 
 struct TaxiCarCell: View {
     
-    let car: TaxiCarModel
+    let car: VehicleModel
     
     var body: some View {
         
         HStack(spacing: 10) {
             
-            Image(car.image)
+            Image("taxi1")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 88, height: 56)
@@ -26,7 +26,7 @@ struct TaxiCarCell: View {
                 Text("£")
                     .font(AppFont.font(.medium, size: 25))
                 
-                Text(car.price, format: .number.precision(.fractionLength(2)))
+                Text(car.price)
                     .font(AppFont.font(.medium, size: 16))
                     .lineLimit(1)
             }
@@ -38,7 +38,7 @@ struct TaxiCarCell: View {
                 
                 Image(systemName: "carseat.left.fill")
                 
-                Text("\(car.seats)")
+                Text("\(car.seater)")
             }
             .font(AppFont.font(.medium, size: 16))
             .foregroundStyle(.black)
@@ -47,7 +47,7 @@ struct TaxiCarCell: View {
             
             HStack(spacing: 4) {
                 Image(systemName: "gauge.open.with.lines.needle.33percent")
-                Text("\(car.metric)")
+                Text(String(format: "%.1f", car.distance))
             }
             .font(AppFont.font(.medium, size: 16))
             .foregroundStyle(.black)
@@ -59,9 +59,4 @@ struct TaxiCarCell: View {
         )
         .cardStyle()
     }
-}
-
-#Preview {
-    TaxiCarCell(car:
-                    TaxiCarModel(image: "taxi1", price: 20.75, seats: 4, metric: 2))
 }

@@ -1,6 +1,6 @@
 //
 //  AuthManager.swift
-//  Find Taxi Cab Driver
+//  Find Taxi Cab
 //
 //  Created by Bhushan Kumar on 21/03/26.
 //
@@ -11,26 +11,28 @@ final class AuthManager {
     
     static let shared = AuthManager()
     
-    @AppStorage("driverId") var driverId: String = ""
+    @AppStorage("customerId") var customerId: String = ""
     @AppStorage("token") var token: String = ""
-    @AppStorage("workStatus") var workStatus: String = ""
+    @AppStorage("customerName") var customerName: String = ""
+    @AppStorage("email") var email: String = ""
     
     private init() {}
     
     var isLoggedIn: Bool {
-        !driverId.isEmpty
+        !customerId.isEmpty
     }
     
-    func saveLogin(driverId: String, token: String?, status: String?) {
-        self.driverId = driverId
+    func saveLogin(customerId: String, token: String?, customerName: String?, email: String?) {
+        self.customerId = customerId
         self.token = token ?? ""
-        self.workStatus = status ?? ""
+        self.customerName = customerName ?? ""
+        self.email = email ?? ""
     }
     
     func logout() {
-        driverId = ""
+        customerId = ""
         token = ""
-        workStatus = ""
-        FCMTokenManager.shared.clearToken()
+        customerName = ""
+        email = ""
     }
 }

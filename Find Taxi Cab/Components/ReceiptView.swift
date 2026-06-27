@@ -15,6 +15,8 @@ struct ReceiptView: View {
     @State private var rating: Int = 5
     @State private var comment: String = ""
     
+    @FocusState private var isCommentFocused: Bool
+    
     var body: some View {
         
         VStack(alignment: .leading, spacing: 18) {
@@ -48,13 +50,14 @@ struct ReceiptView: View {
                     isTipSelected.toggle()
                 } label: {
                     Image(systemName: isTipSelected ? "checkmark.square.fill" : "square")
+                        .resizable()
+                        .frame(width: 26, height: 26)
                         .foregroundColor(colorScheme == .dark
                                          ? Color.white
                                          : Color.black)
-                        .frame(width: 26, height: 26)
                 }
                 
-                Text("Drive Tip (£)")
+                Text("Driver Tip (£)")
                     .font(AppFont.font(.regular, size: 20))
             }
             .padding(.bottom, 10)
@@ -81,16 +84,17 @@ struct ReceiptView: View {
             .padding(.bottom, 10)
             
             // COMMENT
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(spacing: 6) {
                 
-                Text("Comment")
+                TextField("Comment", text: $comment)
+                    .focused($isCommentFocused)
                     .font(AppFont.font(.semiBold, size: 20))
-                    .foregroundColor(AppColors.grayDarkColor)
+                    .tint(AppColors.primaryYellow)
                 
-                TextField("Write here...", text: $comment)
-                    .textFieldStyle(.plain)
-                
-                Divider()
+                Rectangle()
+                    .frame(height: 1)
+                    .foregroundColor(isCommentFocused ? AppColors.primaryYellow : .gray.opacity(0.5))
+                    .animation(.easeInOut(duration: 0.2), value: isCommentFocused)
             }
             .padding(.bottom, 10)
             

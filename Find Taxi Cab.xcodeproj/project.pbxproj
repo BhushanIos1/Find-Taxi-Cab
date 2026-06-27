@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		A1E0A777FBB8106D49B8B5DF /* Pods_Find_Taxi_Cab.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 477760E0C72CED4AF54751EC /* Pods_Find_Taxi_Cab.framework */; };
+		C6852E182FE5B95A006BBDED /* SwiftfulLoadingIndicators in Frameworks */ = {isa = PBXBuildFile; productRef = C6852E172FE5B95A006BBDED /* SwiftfulLoadingIndicators */; };
+		C6852E372FE5C51B006BBDED /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = C6852E362FE5C51B006BBDED /* FirebaseCore */; };
+		C6852E392FE5C52D006BBDED /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = C6852E382FE5C52D006BBDED /* FirebaseMessaging */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,7 +33,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C6852E392FE5C52D006BBDED /* FirebaseMessaging in Frameworks */,
 				A1E0A777FBB8106D49B8B5DF /* Pods_Find_Taxi_Cab.framework in Frameworks */,
+				C6852E372FE5C51B006BBDED /* FirebaseCore in Frameworks */,
+				C6852E182FE5B95A006BBDED /* SwiftfulLoadingIndicators in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -123,6 +129,8 @@
 			mainGroup = C62DE0F82F4E2ACF00E65D9D;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				C6852E162FE5B95A006BBDED /* XCRemoteSwiftPackageReference "SwiftfulLoadingIndicators" */,
+				C6852E1A2FE5B9FC006BBDED /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C62DE1022F4E2ACF00E65D9D /* Products */;
@@ -339,10 +347,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Find Taxi Cab/Find Taxi Cab.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Find Taxi Cab/Preview Content\"";
-				DEVELOPMENT_TEAM = 4YZSJ483Z5;
+				DEVELOPMENT_TEAM = 2W6YRM38UM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Find-Taxi-Cab-Info.plist";
@@ -361,6 +371,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.viatris.Find-Taxi-Cab";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -377,10 +388,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Find Taxi Cab/Find Taxi Cab.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Find Taxi Cab/Preview Content\"";
-				DEVELOPMENT_TEAM = 4YZSJ483Z5;
+				DEVELOPMENT_TEAM = 2W6YRM38UM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Find-Taxi-Cab-Info.plist";
@@ -399,6 +412,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.viatris.Find-Taxi-Cab";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -431,6 +445,43 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C6852E162FE5B95A006BBDED /* XCRemoteSwiftPackageReference "SwiftfulLoadingIndicators" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulLoadingIndicators.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.0.4;
+			};
+		};
+		C6852E1A2FE5B9FC006BBDED /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.12.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C6852E172FE5B95A006BBDED /* SwiftfulLoadingIndicators */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C6852E162FE5B95A006BBDED /* XCRemoteSwiftPackageReference "SwiftfulLoadingIndicators" */;
+			productName = SwiftfulLoadingIndicators;
+		};
+		C6852E362FE5C51B006BBDED /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C6852E1A2FE5B9FC006BBDED /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		C6852E382FE5C52D006BBDED /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C6852E1A2FE5B9FC006BBDED /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C62DE0F92F4E2ACF00E65D9D /* Project object */;
 }

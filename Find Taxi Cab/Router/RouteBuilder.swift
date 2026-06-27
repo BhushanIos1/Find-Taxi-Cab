@@ -17,19 +17,18 @@ struct RouteBuilder {
         case .home:
             HomeScreen()
             
-        case .bookingPreview(let pickupAddress, let destinationAddress):
+        case .bookingPreview(let pickupAddress, let destinationAddress, let fromLat, let fromLong, let toLat, let toLong):
             BookingPreview(
                 pickupAddress: pickupAddress,
-                destinationAddress: destinationAddress
+                destinationAddress: destinationAddress,
+                fromLat: fromLat,
+                fromLong: fromLong,
+                toLat: toLat,
+                toLong: toLong
             )
             
-        case .getCabScreen(let pickupAddress, let destinationAddress, let specialDisability, let passengerCount):
-            GetCabScreen(
-                pickupAddress: pickupAddress,
-                destinationAddress: destinationAddress,
-                disability: specialDisability,
-                numberOfPassenger: passengerCount
-            )
+        case .getCabScreen(let pickupAddress, let destinationAddress, let fromLat, let fromLong, let toLat, let toLong, let specialDisability, let passengerCount):
+            GetCabScreen(pickupAddress: pickupAddress, destinationAddress: destinationAddress, fromLat: fromLat, fromLong: fromLong, toLat: toLat, toLong: toLong, disability: specialDisability, numberOfPassenger: passengerCount)
             
         case .history:
             HistoryScreen()
@@ -66,6 +65,9 @@ struct RouteBuilder {
             
         case .registration:
             RegisterScreen()
+            
+        case .landingPage:
+            LandingScreen()
         }
     }
 }

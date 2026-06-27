@@ -6,11 +6,18 @@
 //
 
 import SwiftUI
+import SwiftfulLoadingIndicators
 
 struct AboutScreen: View {
     
     @EnvironmentObject
     private var router: AppRouter
+    
+    @EnvironmentObject
+    private var toastManager: ToastManager
+    
+    @StateObject
+    private var viewModel = StaticViewModel()
     
     var body: some View {
         
@@ -18,10 +25,24 @@ struct AboutScreen: View {
             
             VStack {
                 Spacer()
-                Text("About us test data")
+                Text(viewModel.content)
                     .font(AppFont.font(.regular, size: 16))
                     .foregroundStyle(.secondary)
                 Spacer()
+            }
+            
+            if viewModel.isLoading {
+                
+                Color.black.opacity(0.25)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(true)
+                
+                LoadingIndicator(
+                    animation: .circleTrim,
+                    color: AppColors.primaryYellow,
+                    size: .medium,
+                    speed: .normal
+                )
             }
         }
         .appNavigationBar(
@@ -29,5 +50,12 @@ struct AboutScreen: View {
             leading: .back) {
                 router.pop()
             }
+            .onAppear {
+                viewModel.getAboutUs()
+            }
+            .overlay(
+                GlobalToastView()
+                    .environmentObject(toastManager)
+            )
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftfulLoadingIndicators
 
 struct GetCabScreen: View {
     
@@ -14,6 +15,14 @@ struct GetCabScreen: View {
     
     @Environment(\.colorScheme)
     private var colorScheme
+    
+    @EnvironmentObject
+    private var toastManager: ToastManager
+    
+    let fromLat: Double
+    let fromLong: Double
+    let toLat: Double
+    let toLong: Double
     
     let pickupAddress: String
     let destinationAddress: String
@@ -27,36 +36,68 @@ struct GetCabScreen: View {
     
     @State private var showAlert = false
     
+    private var bookingDate: String {
+        bookingType == .immediate
+        ? Date().apiDate
+        : selectedDate.apiDate
+    }
+
+    private var bookingTime: String {
+        bookingType == .immediate
+        ? Date().apiTime
+        : selectedDate.apiTime
+    }
+    
+    @StateObject
+    private var viewModel = BookingViewModel()
+    
     init(
         pickupAddress: String,
         destinationAddress: String,
+        fromLat: Double,
+        fromLong: Double,
+        toLat: Double,
+        toLong: Double,
         disability: String,
         numberOfPassenger: Int
     ) {
         self.pickupAddress = pickupAddress
         self.destinationAddress = destinationAddress
+        self.fromLat = fromLat
+        self.fromLong = fromLong
+        self.toLat = toLat
+        self.toLong = toLong
         self.disability = disability
         self.numberOfPassenger = numberOfPassenger
         _passengers = State(initialValue: numberOfPassenger)
     }
-    
-    private let taxiCars: [TaxiCarModel] = [
-        TaxiCarModel(image: "taxi1", price: 20.70, seats: 4, metric: 2),
-        TaxiCarModel(image: "taxi1", price: 32.50, seats: 6, metric: 3),
-        TaxiCarModel(image: "taxi1", price: 15.30, seats: 4, metric: 1)
-    ]
-    
+
     var body: some View {
         
-        VStack(spacing: 0) {
+        ZStack {
             
-            headerView
+            VStack(spacing: 0) {
+                
+                headerView
+                
+                buttonSection
+                                
+                vehicleList
+            }
             
-            buttonSection
-            
-            disabilityText
-            
-            vehicleList
+            if viewModel.isLoading {
+                
+                Color.clear
+                    .contentShape(Rectangle())
+                    .ignoresSafeArea()
+                
+                LoadingIndicator(
+                    animation: .circleTrim,
+                    color: AppColors.primaryYellow,
+                    size: .medium,
+                    speed: .normal
+                )
+            }
         }
         .appNavigationBar(
             title: "Select Cab",
@@ -64,6 +105,46 @@ struct GetCabScreen: View {
         ) {
             router.pop()
         }
+        .onAppear {
+            loadVehicles()
+        }
+        .onChange(of: bookingType) { type in
+            if type == .immediate {
+                loadVehicles()
+            } else {
+                showDatePicker = true
+            }
+        }
+        .onChange(of: viewModel.bookingState) { state in
+            
+            guard let state else { return }
+            
+            switch state {
+                
+            case .success(let message):
+                
+                toastManager.showToast(
+                    type: .success,
+                    title: "Success",
+                    subtitle: message
+                )
+                
+                viewModel.errorMessage = nil
+                
+            case .failure(let message):
+                
+                toastManager.showToast(
+                    type: .error,
+                    title: "Registration Failed",
+                    subtitle: message
+                )
+            }
+            
+            DispatchQueue.main.async {
+                viewModel.bookingState = nil
+            }
+        }
+        .overlay(GlobalToastView().environmentObject(toastManager))
         .sheet(isPresented: $showDatePicker) {
             datePickerSheet
         }
@@ -91,6 +172,20 @@ struct GetCabScreen: View {
             }
             .animation(.easeInOut(duration: 0.25), value: showAlert)
         }
+    }
+    
+    private func loadVehicles() {
+
+        viewModel.getVehicleList(
+            latFrom: "\(fromLat)",
+            longFrom: "\(fromLong)",
+            latTo: "\(toLat)",
+            longTo: "\(toLong)",
+            date: bookingDate,
+            time: bookingTime,
+            passengers: "\(passengers)",
+            specialNeed: disability
+        )
     }
 }
 
@@ -127,7 +222,8 @@ private extension GetCabScreen {
         ScrollView(showsIndicators: false) {
             
             LazyVStack(spacing: 20) {
-                ForEach(taxiCars) { car in
+                
+                ForEach(viewModel.availableVehicles) { car in
                     
                     Button {
                         handleCarSelection(car)
@@ -144,7 +240,7 @@ private extension GetCabScreen {
 
 private extension GetCabScreen {
     
-    func handleCarSelection(_ car: TaxiCarModel) {
+    func handleCarSelection(_ car: VehicleModel) {
         print("Selected Car:", car)
         showAlert = true
     }
@@ -170,6 +266,7 @@ private extension GetCabScreen {
             
             Button {
                 showDatePicker = false
+                loadVehicles()
             } label: {
                 Text("Done")
                     .primaryButtonStyle()
@@ -187,6 +284,8 @@ private extension GetCabScreen {
         
         Button {
             
+            
+            
         } label: {
             Text("ESTIMATED FARE")
                 .font(AppFont.font(.medium, size: 18))
@@ -196,8 +295,4 @@ private extension GetCabScreen {
                 .background(colorScheme == .dark ? Color.white : Color.black)
         }
     }
-}
-
-#Preview {
-    GetCabScreen(pickupAddress: "", destinationAddress: "", disability: "", numberOfPassenger: 2)
 }

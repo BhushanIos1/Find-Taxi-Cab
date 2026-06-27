@@ -13,11 +13,23 @@ enum AppRoute: Hashable {
     case registration
     case login
     case forgotPassword
+    case landingPage
     
     case home
-    case bookingPreview(pickupAddress: String, destinationAddress: String)
+    case bookingPreview(
+        pickupAddress: String,
+        destinationAddress: String,
+        fromLat: Double,
+        fromLong: Double,
+        toLat: Double,
+        toLong: Double
+    )
     case getCabScreen(pickupAddress: String,
                       destinationAddress: String,
+                      fromLat: Double,
+                      fromLong: Double,
+                      toLat: Double,
+                      toLong: Double,
                       specialDisability: String,
                       passengerCount: Int)
     

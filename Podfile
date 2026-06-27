@@ -12,4 +12,6 @@ target 'Find Taxi Cab' do
   pod 'GoogleMaps'
   pod 'GooglePlaces'
   
+  pod 'Alamofire'
+  
 end

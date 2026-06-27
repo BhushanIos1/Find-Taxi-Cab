@@ -1,6 +1,6 @@
 //
 //  RegisterViewModel.swift
-//  Find Taxi Cab Driver
+//  Find Taxi Cab
 //
 //  Created by Bhushan Kumar on 22/03/26.
 //
@@ -21,13 +21,13 @@ final class RegisterViewModel: ObservableObject {
     @Published var registrationState: RegistrationState?
     
     func register(
-        name: String,
         email: String,
         phone: String,
         password: String,
-        address: String,
+        cardNumber: String,
         router: AppRouter
     ) {
+        
         guard !isLoading else { return }
         
         isLoading = true
@@ -45,69 +45,47 @@ final class RegisterViewModel: ObservableObject {
                 
                 let fcmToken = FCMTokenManager.shared.getToken() ?? "FIREBASE_FCM_TOKEN"
                 
-                let response: RegisterResponse = try await APIClient.shared.request(
-                    DriverAPI.register(
-                        name: name,
+                let response: RegisterResponse =
+                try await APIClient.shared.request(
+                    CustomerAPI.register(
                         email: emailTrimmed,
                         phone: phoneTrimmed,
                         password: passwordTrimmed,
-                        address: address
+                        cardNumber: cardNumber,
+                        profilePhoto: nil
                     ),
                     responseType: RegisterResponse.self
                 )
                 
                 if response.result == "success",
-                   let id = response.id {
+                   let custId = response.custid {
                     
-                    print("✅ Registered ID:", id)
+                    print("✅ CUSTOMER REGISTERED:", custId)
                     
                     isSuccess = true
-                    
-                    AppState.shared.login(
-                        driverId: "\(id)",
-                        token: fcmToken, status: "free")
-                    
-                    if !fcmToken.isEmpty {
-                        updateFCMToken(driverId: "\(id)", token: fcmToken)
-                    }
-                    
-                    registrationState = .success("Registration Successful")
+
+                    registrationState = .success(response.message ?? "Registration Successful")
                     
                 } else {
-                    let message = response.error ?? "Registration Failed"
-                    print("❌ REGISTER FAILED:", message)
+                    
+                    let message = response.message ?? "Registration Failed"
+                    
+                    print("❌ CUSTOMER REGISTER FAILED:", message)
+                    
                     errorMessage = message
                     registrationState = .failure(message)
                 }
                 
             } catch {
-                print("❌ REGISTER FLOW ERROR:", error.localizedDescription)
+                
+                print("❌ CUSTOMER REGISTER ERROR:", error.localizedDescription)
+                
                 errorMessage = error.localizedDescription
                 registrationState = .failure(error.localizedDescription)
             }
         }
     }
-    
-    private func updateFCMToken(driverId: String, token: String) {
-
-        Task {
-
-            do {
-
-                let response: CommonResponse = try await APIClient.shared.request(DriverAPI.updateFCMToken(token: token),
-                    responseType: CommonResponse.self)
-
-                print("✅ FCM TOKEN UPDATED")
-                print(response)
-
-            } catch {
-
-                print("❌ FCM TOKEN UPDATE ERROR")
-                print(error.localizedDescription)
-            }
-        }
-    }
-    
+        
     func forgotPassword(email: String,router: AppRouter) {
         guard !isLoading else { return }
         
@@ -123,7 +101,7 @@ final class RegisterViewModel: ObservableObject {
             do {
                 
                 let response: CommonResponse = try await APIClient.shared.request(
-                    DriverAPI.forgotPassword(email: emailTrimmed),
+                    CustomerAPI.forgotPassword(email: emailTrimmed),
                     responseType: CommonResponse.self
                 )
                 
@@ -152,6 +130,44 @@ final class RegisterViewModel: ObservableObject {
         }
     }
     
+    func deleteAccount(id: String, router: AppRouter) {
+        
+        guard !isLoading else { return }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        Task {
+            
+            defer { isLoading = false }
+            
+            do {
+                
+                let response: RegisterResponse = try await APIClient.shared.request(
+                    CustomerAPI.deleteCustomer,
+                    responseType: RegisterResponse.self)
+                
+                if response.result == "success" {
+                    
+                    print("✅ Deleted ")
+                    
+                    isSuccess = true
+                    
+                    AppState.shared.logout()
+                    
+                } else {
+                    let message = response.message ?? "Deletion FAILED"
+                    print("❌ Deletion FAILED:", message)
+                    errorMessage = message
+                }
+                
+            } catch {
+                print("❌ Deletion FLOW ERROR:", error.localizedDescription)
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+    
     func logOut(id: String, router: AppRouter) {
         
         guard !isLoading else { return }
@@ -166,9 +182,8 @@ final class RegisterViewModel: ObservableObject {
             do {
                 
                 let response: RegisterResponse = try await APIClient.shared.request(
-                    DriverAPI.logout,
-                    responseType: RegisterResponse.self
-                )
+                    CustomerAPI.logout,
+                    responseType: RegisterResponse.self)
                 
                 if response.result == "success" {
                     
@@ -179,7 +194,7 @@ final class RegisterViewModel: ObservableObject {
                     AppState.shared.logout()
                     
                 } else {
-                    let message = response.error ?? "LOGOUT FAILED"
+                    let message = response.message ?? "LOGOUT FAILED"
                     print("❌ LOGOUT FAILED:", message)
                     errorMessage = message
                 }
@@ -195,6 +210,5 @@ final class RegisterViewModel: ObservableObject {
 struct RegisterResponse: Decodable {
     let result: String
     let message: String?
-    let id: Int?
-    let error: String?
+    let custid: Int?
 }

@@ -1,6 +1,6 @@
 //
 //  LoginViewModel.swift
-//  Find Taxi Cab Driver
+//  Find Taxi Cab
 //
 //  Created by Bhushan Kumar on 12/04/26.
 //
@@ -21,8 +21,8 @@ final class LoginViewModel: ObservableObject {
     private var isRequestInProgress = false
     
     @Published var errorMessage: String?
-    @Published var userData: Driver?
-        
+    @Published var userData: Customer?
+    
     func login(email: String, password: String, router: AppRouter) {
         
         guard !isRequestInProgress else {
@@ -49,7 +49,7 @@ final class LoginViewModel: ObservableObject {
                 let fcmToken = FCMTokenManager.shared.getToken() ?? "FIREBASE_FCM_TOKEN"
                 
                 let response: LoginResponse = try await APIClient.shared.request(
-                    DriverAPI.login(
+                    CustomerAPI.login(
                         email: emailTrimmed,
                         password: passwordTrimmed,
                         token: fcmToken
@@ -57,20 +57,21 @@ final class LoginViewModel: ObservableObject {
                     responseType: LoginResponse.self
                 )
                 
-                if response.result == "success", let driver = response.driver_data {
+                if response.result == "success", let customer = response.customerData {
                     
-                    print("✅ LOGIN SUCCESS:", driver.id)
-                    AppState.shared.login(driverId: driver.id, token: driver.token, status: driver.workStatus)
+                    print("✅ LOGIN SUCCESS:", customer.custId)
+                    AppState.shared.login(customerId: customer.custId, token: customer.token, customerName: customer.custName, email: customer.email)
+                    
                     
                     if !fcmToken.isEmpty {
-                        updateFCMToken(driverId: driver.id, token: fcmToken)
+                        updateFCMToken(customerId: customer.custId, token: fcmToken)
                     }
                     
                     loginState = .success("Login Successful")
                     
                 } else {
                     
-                    let message = response.error ?? "Invalid login response"
+                    let message = response.message ?? "Invalid login response"
                     print("❌ LOGIN FAILED:", message)
                     
                     loginState = .failure(message)
@@ -82,20 +83,19 @@ final class LoginViewModel: ObservableObject {
         }
     }
     
-    private func updateFCMToken(driverId: String, token: String) {
-
+    private func updateFCMToken(customerId: String, token: String) {
+        
         Task {
-
+            
             do {
-
-                let response: CommonResponse = try await APIClient.shared.request(DriverAPI.updateFCMToken(token: token),
-                    responseType: CommonResponse.self)
-
+                
+                let response: CommonResponse = try await APIClient.shared.request(CustomerAPI.updateFCMToken(token: token), responseType: CommonResponse.self)
+                
                 print("✅ FCM TOKEN UPDATED")
                 print(response)
-
+                
             } catch {
-
+                
                 print("❌ FCM TOKEN UPDATE ERROR")
                 print(error.localizedDescription)
             }
@@ -103,52 +103,99 @@ final class LoginViewModel: ObservableObject {
     }
     
     func changePassword(password: String, router: AppRouter) {
-
+        
         guard !isLoading else { return }
-
+        
         isLoading = true
         errorMessage = nil
-
+        
         let passwordTrimmed = password.trimmingCharacters(
             in: .whitespacesAndNewlines
         )
-
+        
         Task {
-
+            
             defer { isLoading = false }
-
+            
             do {
-
+                
                 let response: CommonResponse = try await APIClient.shared.request(
-                    DriverAPI.changePassword(
-                        password: passwordTrimmed
-                    ),
+                    CustomerAPI.changePassword(password: passwordTrimmed),
                     responseType: CommonResponse.self
                 )
-
+                
                 if response.result == "success" {
-
+                    
                     let message = response.message ?? "Password changed successfully"
-
+                    
                     print("✅ CHANGE PASSWORD:", message)
-
+                    
                     isLoading = false
                     loginState = .success(message)
-
+                    
                 } else {
-
+                    
                     let message = response.message ?? "Failed to change password"
-
+                    
                     print("❌ CHANGE PASSWORD FAILED:", message)
-
+                    
                     errorMessage = message
                     loginState = .failure(message)
                 }
-
+                
             } catch {
-
+                
                 print("❌ CHANGE PASSWORD ERROR:", error.localizedDescription)
-
+                
+                errorMessage = error.localizedDescription
+                loginState = .failure(error.localizedDescription)
+            }
+        }
+    }
+    
+    func updateCardDetails(
+        cardNumber: String,
+        cardHolder: String,
+        month: String,
+        year: String
+    ) {
+        
+        guard !isLoading else { return }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        Task {
+            
+            defer { isLoading = false }
+            
+            do {
+                
+                let response = try await APIClient.shared.updateCardDetails(
+                    cardNumber: cardNumber,
+                    cardHolder: cardHolder,
+                    month: month,
+                    year: year
+                )
+                
+                if response.result?.lowercased() == "success" {
+                    
+                    isLoading = false
+                    let message = response.message ?? "Card Updated"
+                    loginState = .success(message)
+                    
+                } else {
+                    
+                    let message = response.message ?? "Failed To Update Card"
+                    errorMessage = message
+                    loginState = .failure(message)
+                }
+                
+            } catch {
+                
+                print("❌ UPDATE CARD ERROR")
+                print(error)
+                
                 errorMessage = error.localizedDescription
                 loginState = .failure(error.localizedDescription)
             }

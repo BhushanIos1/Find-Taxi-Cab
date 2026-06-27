@@ -81,3 +81,26 @@ extension String {
         timeFormatter.string(from: Date())
     }
 }
+
+extension Date {
+
+    var apiDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: self)
+    }
+
+    var apiTime: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: self)
+    }
+}
+
+extension UIImage {
+
+    func toBase64(compression: CGFloat = 0.7) -> String? {
+        jpegData(compressionQuality: compression)?
+            .base64EncodedString()
+    }
+}

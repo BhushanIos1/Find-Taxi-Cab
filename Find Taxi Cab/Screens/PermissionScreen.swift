@@ -82,8 +82,6 @@ private extension PermissionScreen {
                     
                     if granted {
                         launchManager.markPermissionCompleted()
-                        
-                        router.push(.home)
                     }
                 }
                 

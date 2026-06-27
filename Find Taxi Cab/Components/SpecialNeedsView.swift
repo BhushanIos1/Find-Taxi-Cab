@@ -19,7 +19,7 @@ struct SpecialNeedsView: View {
             Text("Do you have special needs?")
                 .font(AppFont.font(.regular, size: 14))
             
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 16) {
                 
                 Menu {
                     
