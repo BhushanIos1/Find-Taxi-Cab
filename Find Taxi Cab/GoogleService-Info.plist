@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.viatris.Find-Taxi-Cab</string>
+	<string>com.viatris.Find-Taxi-Cab-Customer</string>
 	<key>PROJECT_ID</key>
 	<string>findtaxicustomerdriver</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:94916754393:ios:266645c626ee95451bb7c8</string>
+	<string>1:94916754393:ios:6a6316631e0c7d4a1bb7c8</string>
 </dict>
 </plist>
