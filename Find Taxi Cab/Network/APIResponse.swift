@@ -19,7 +19,30 @@ struct APIResponse<T: Decodable>: Decodable {
     }
 }
 
-struct CommonResponse: Codable {
+struct CommonResponse: Decodable {
+
     let result: String?
     let message: String?
+
+    enum CodingKeys: String, CodingKey {
+        case result, message, error
+    }
+
+    /// The backend reports success under `message` but failure under `error`.
+    /// Android papers over that in `BaseActivity.getErrorMessage()` — same chain
+    /// here, so a failed call surfaces what actually went wrong instead of nil.
+    init(from decoder: Decoder) throws {
+
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        result = try container.decodeIfPresent(String.self, forKey: .result)
+
+        message = try container.decodeIfPresent(String.self, forKey: .message)
+            ?? container.decodeIfPresent(String.self, forKey: .error)
+    }
+
+    init(result: String?, message: String?) {
+        self.result = result
+        self.message = message
+    }
 }

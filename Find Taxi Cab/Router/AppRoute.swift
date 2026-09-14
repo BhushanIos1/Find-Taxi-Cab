@@ -32,7 +32,9 @@ enum AppRoute: Hashable {
                       toLong: Double,
                       specialDisability: String,
                       passengerCount: Int)
-    
+
+    case tracking(TripContext)
+
     case history
     case booking
     case emergency

@@ -23,7 +23,13 @@ struct AppNavigationBar: ViewModifier {
                 onMenuTap: onMenuTap
             )
             
+            // Without this the VStack sizes itself to its children and then
+            // centres in the parent, so any screen whose content is short — an
+            // empty list, a two-line message — drags the navigation bar down to
+            // the middle of the display. Claiming the remaining height keeps the
+            // bar pinned under the status bar regardless of what's below it.
             content
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .navigationBarBackButtonHidden(true)
     }

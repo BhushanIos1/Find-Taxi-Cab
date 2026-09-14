@@ -20,6 +20,7 @@ struct AndroidAlertView: View {
         VStack(spacing: 24) {
             
             Text(message)
+                .foregroundStyle(colorScheme == .dark ? .white : Color.black)
                 .font(AppFont.font(.regular, size: 16))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)

@@ -6,59 +6,60 @@
 //
 
 import SwiftUI
+import SwiftfulLoadingIndicators
 
 struct HistoryScreen: View {
-    
+
     @EnvironmentObject
     private var router: AppRouter
-    
-    let bookings: [BookingItem] = [
-        BookingItem(
-            dateTime: "15/02/2026   00:05:05",
-            price: "£81.60",
-            bookingNo: "943",
-            carRegNo: "N44BYG",
-            addressLine: "22 Cornmill Dr, Liversedge WF15, UK, Sheffield, UK",
-            status: .completed
-        ),
-        BookingItem(
-            dateTime: "15/02/2026   00:05:05",
-            price: "£81.60",
-            bookingNo: "943",
-            carRegNo: "N44BYG",
-            addressLine: "22 Cornmill Dr, Liversedge WF15, UK, Sheffield, UK",
-            status: .cancelled
-        ),
-        BookingItem(
-            dateTime: "15/02/2026   00:05:05",
-            price: "£81.60",
-            bookingNo: "943",
-            carRegNo: "N44BYG",
-            addressLine: "22 Cornmill Dr, Liversedge WF15, UK, Sheffield, UK",
-            status: .pending
-        ),
-        BookingItem(
-            dateTime: "15/02/2026   00:05:05",
-            price: "£81.60",
-            bookingNo: "943",
-            carRegNo: "N44BYG",
-            addressLine: "22 Cornmill Dr, Liversedge WF15, UK, Sheffield, UK",
-            status: .completed
-        )
-    ]
-    
+
+    @StateObject
+    private var viewModel = HistoryViewModel()
+
+    /// The booking whose Pay button was tapped — drives the receipt popover, the
+    /// same way Android's Pay button opens `InvoiceFragment` with `base_fair` /
+    /// `driver_tip` / `booking_id` in its bundle.
+    @State private var receiptContext: ReceiptContext?
+
     var body: some View {
-        
+
         ZStack {
-            
-            ScrollView {
-                
-                LazyVStack(spacing: 20) {
-                    ForEach(bookings) { booking in
-                        BookingListCell(item: booking)
+
+            if viewModel.bookings.isEmpty, !viewModel.isLoading {
+
+                emptyState
+
+            } else {
+
+                ScrollView {
+
+                    LazyVStack(spacing: 20) {
+                        ForEach(viewModel.bookings) { booking in
+                            BookingListCell(item: booking) {
+                                receiptContext = ReceiptContext(
+                                    bookingId: booking.bookingId ?? "",
+                                    fare: FareBreakdown(
+                                        baseFare: booking.baseFare,
+                                        percentAmt: nil,
+                                        totalAmt: booking.totalAmount,
+                                        driverTip: booking.driverTip
+                                    )
+                                )
+                            }
+                        }
                     }
+                    .padding(.vertical, 20)
                 }
-                .padding(.vertical, 20)
+            }
+
+            if viewModel.isLoading {
+
+                LoadingIndicator(
+                    animation: .circleTrim,
+                    color: AppColors.primaryYellow,
+                    size: .medium,
+                    speed: .normal
+                )
             }
         }
         .appNavigationBar(
@@ -66,6 +67,23 @@ struct HistoryScreen: View {
             leading: .back) {
                 router.pop()
             }
+        .onAppear {
+            viewModel.loadHistory()
+        }
+        .receiptPopup(context: $receiptContext) {
+            viewModel.loadHistory()
+        }
+    }
+}
+
+private extension HistoryScreen {
+
+    var emptyState: some View {
+
+        NoDataView(
+            icon: "clock.arrow.circlepath",
+            message: viewModel.errorMessage ?? "You haven't taken any trips yet."
+        )
     }
 }
 

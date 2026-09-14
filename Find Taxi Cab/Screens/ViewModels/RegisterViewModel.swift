@@ -20,11 +20,20 @@ final class RegisterViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var registrationState: RegistrationState?
     
+    /// Takes the whole Android registration form. The card fields in particular
+    /// are what `get_card_details` reads back later — if they never leave the
+    /// device, the customer logs in with no card on file and cannot pay.
     func register(
+        name: String,
         email: String,
         phone: String,
         password: String,
+        address: String,
+        postalCode: String,
+        cardHolderName: String,
         cardNumber: String,
+        cardMonth: String,
+        cardYear: String,
         router: AppRouter
     ) {
         
@@ -33,9 +42,9 @@ final class RegisterViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        let emailTrimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
-        let phoneTrimmed = phone.trimmingCharacters(in: .whitespacesAndNewlines)
-        let passwordTrimmed = password.trimmingCharacters(in: .whitespacesAndNewlines)
+        func trimmed(_ value: String) -> String {
+            value.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
         
         Task {
             
@@ -43,15 +52,19 @@ final class RegisterViewModel: ObservableObject {
             
             do {
                 
-                let fcmToken = FCMTokenManager.shared.getToken() ?? "FIREBASE_FCM_TOKEN"
-                
                 let response: RegisterResponse =
                 try await APIClient.shared.request(
                     CustomerAPI.register(
-                        email: emailTrimmed,
-                        phone: phoneTrimmed,
-                        password: passwordTrimmed,
-                        cardNumber: cardNumber,
+                        name: trimmed(name),
+                        email: trimmed(email),
+                        phone: trimmed(phone),
+                        password: trimmed(password),
+                        address: trimmed(address),
+                        postalCode: trimmed(postalCode),
+                        cardHolderName: trimmed(cardHolderName),
+                        cardNumber: trimmed(cardNumber),
+                        cardMonth: trimmed(cardMonth),
+                        cardYear: trimmed(cardYear),
                         profilePhoto: nil
                     ),
                     responseType: RegisterResponse.self

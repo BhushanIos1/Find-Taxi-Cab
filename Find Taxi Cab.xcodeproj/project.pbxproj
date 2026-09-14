@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		A1E0A777FBB8106D49B8B5DF /* Pods_Find_Taxi_Cab.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 477760E0C72CED4AF54751EC /* Pods_Find_Taxi_Cab.framework */; };
+		C66242193043FE0A00CB58AD /* Stripe in Frameworks */ = {isa = PBXBuildFile; productRef = C66242183043FE0A00CB58AD /* Stripe */; };
+		C662421B3043FE0A00CB58AD /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = C662421A3043FE0A00CB58AD /* StripePaymentSheet */; };
 		C6852E182FE5B95A006BBDED /* SwiftfulLoadingIndicators in Frameworks */ = {isa = PBXBuildFile; productRef = C6852E172FE5B95A006BBDED /* SwiftfulLoadingIndicators */; };
 		C6852E372FE5C51B006BBDED /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = C6852E362FE5C51B006BBDED /* FirebaseCore */; };
 		C6852E392FE5C52D006BBDED /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = C6852E382FE5C52D006BBDED /* FirebaseMessaging */; };
@@ -33,9 +35,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C66242193043FE0A00CB58AD /* Stripe in Frameworks */,
 				C6852E392FE5C52D006BBDED /* FirebaseMessaging in Frameworks */,
 				A1E0A777FBB8106D49B8B5DF /* Pods_Find_Taxi_Cab.framework in Frameworks */,
 				C6852E372FE5C51B006BBDED /* FirebaseCore in Frameworks */,
+				C662421B3043FE0A00CB58AD /* StripePaymentSheet in Frameworks */,
 				C6852E182FE5B95A006BBDED /* SwiftfulLoadingIndicators in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -131,6 +135,7 @@
 			packageReferences = (
 				C6852E162FE5B95A006BBDED /* XCRemoteSwiftPackageReference "SwiftfulLoadingIndicators" */,
 				C6852E1A2FE5B9FC006BBDED /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				C66242173043FE0A00CB58AD /* XCRemoteSwiftPackageReference "stripe-ios-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C62DE1022F4E2ACF00E65D9D /* Products */;
@@ -183,9 +188,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Find Taxi Cab/Pods-Find Taxi Cab-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Find Taxi Cab/Pods-Find Taxi Cab-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -200,9 +209,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Find Taxi Cab/Pods-Find Taxi Cab-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Find Taxi Cab/Pods-Find Taxi Cab-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -350,12 +363,13 @@
 				CODE_SIGN_ENTITLEMENTS = "Find Taxi Cab/Find Taxi Cab.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"Find Taxi Cab/Preview Content\"";
 				DEVELOPMENT_TEAM = 2W6YRM38UM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Find-Taxi-Cab-Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs access to your camera to capture a profile image.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to find nearby taxis.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need storage access to upload images and documents.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need storage access to upload images and documents.";
@@ -369,7 +383,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.viatris.Find-Taxi-Cab";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.viatris.Find-Taxi-Cab-Customer";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -391,12 +405,13 @@
 				CODE_SIGN_ENTITLEMENTS = "Find Taxi Cab/Find Taxi Cab.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"Find Taxi Cab/Preview Content\"";
 				DEVELOPMENT_TEAM = 2W6YRM38UM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Find-Taxi-Cab-Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs access to your camera to capture a profile image.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to find nearby taxis.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need storage access to upload images and documents.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need storage access to upload images and documents.";
@@ -410,7 +425,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.viatris.Find-Taxi-Cab";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.viatris.Find-Taxi-Cab-Customer";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -447,6 +462,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		C66242173043FE0A00CB58AD /* XCRemoteSwiftPackageReference "stripe-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stripe/stripe-ios-spm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 24.1.0;
+			};
+		};
 		C6852E162FE5B95A006BBDED /* XCRemoteSwiftPackageReference "SwiftfulLoadingIndicators" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SwiftfulThinking/SwiftfulLoadingIndicators.git";
@@ -466,6 +489,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		C66242183043FE0A00CB58AD /* Stripe */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C66242173043FE0A00CB58AD /* XCRemoteSwiftPackageReference "stripe-ios-spm" */;
+			productName = Stripe;
+		};
+		C662421A3043FE0A00CB58AD /* StripePaymentSheet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C66242173043FE0A00CB58AD /* XCRemoteSwiftPackageReference "stripe-ios-spm" */;
+			productName = StripePaymentSheet;
+		};
 		C6852E172FE5B95A006BBDED /* SwiftfulLoadingIndicators */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C6852E162FE5B95A006BBDED /* XCRemoteSwiftPackageReference "SwiftfulLoadingIndicators" */;

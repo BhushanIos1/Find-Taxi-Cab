@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Stripe
 
 @main
 struct Find_Taxi_CabApp: App {
@@ -24,6 +25,10 @@ struct Find_Taxi_CabApp: App {
     
     @StateObject
     private var toastManager = ToastManager()
+    
+    init() {
+        StripeAPI.defaultPublishableKey = "pk_live_51HLuS0HZZF0AXR7mLEw9CJ7QJbQ57rVR0ArRankSQRReSwTfRcfwUgrrtF5lPUSw6FMR37MkkWeOOjOVUpKz8n0G00fjJW17rk"
+    }
         
     var body: some Scene {
         

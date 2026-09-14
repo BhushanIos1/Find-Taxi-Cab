@@ -8,51 +8,61 @@
 import SwiftUI
 
 struct BookingListCell: View {
-    
+
     @Environment(\.colorScheme) var colorScheme
-    
+
     let item: BookingItem
-    
-    let shouldShowButton: Bool = true
-    
+
+    var onPay: () -> Void = {}
+
     var body: some View {
-        
+
         VStack(alignment: .leading, spacing: 15) {
-            
+
             HStack(alignment: .top) {
-                
+
                 Image(systemName: "car.fill")
                     .resizable()
                     .foregroundColor(.black)
                     .frame(width: 72, height: 32)
-                
+
                 VStack(alignment: .leading, spacing: 20) {
-                    
+
                     Text(item.dateTime)
                         .font(AppFont.font(.semiBold, size: 16))
                         .foregroundColor(AppColors.grayDarkColor)
-                    
+
                     VStack(alignment: .leading, spacing: 14) {
-                        Text("Booking No   \(item.bookingNo)")
-                        Text("Car Reg. No   \(item.carRegNo)")
-                        
-                        Text(item.addressLine)
+
+                        Text("Booking No   \(item.bookingId ?? "—")")
+                        Text("Car Reg. No   \(item.vehicleNo ?? "—")")
+
+                        Text(item.sourceAddress ?? "—")
+                        Text(item.destinationAddress ?? "—")
+
+                        if let need = item.specialNeed, !need.isEmpty {
+                            Text("Special Need   \(need)")
+                        }
+
+                        if let message = item.specialMessage, !message.isEmpty {
+                            Text(message)
+                        }
                     }
                     .font(AppFont.font(.regular, size: 14))
-                    
-                    
-                    Text(item.status.title)
+
+                    Text(item.statusTitle)
                         .font(AppFont.font(.semiBold, size: 18))
-                        .foregroundColor(item.status.color)
+                        .foregroundColor(item.statusColor)
                 }
-                
+
                 Spacer()
-                
+
                 Group {
-                    if shouldShowButton {
-                        Button {
-                            
-                        } label: {
+                    // Android shows Pay only for a completed, still-unpaid trip;
+                    // every other status shows the amount instead.
+                    if item.canPay {
+
+                        Button(action: onPay) {
                             Text("Pay")
                                 .font(AppFont.font(.medium, size: 18))
                                 .foregroundColor(.white)
@@ -61,8 +71,10 @@ struct BookingListCell: View {
                                 .background(AppColors.primaryYellow)
                                 .cornerRadius(5)
                         }
+
                     } else {
-                        Text(item.price)
+
+                        Text(item.amountDisplay)
                             .font(AppFont.font(.regular, size: 18))
                             .foregroundColor(AppColors.grayDarkColor)
                     }
@@ -87,11 +99,16 @@ struct BookingListCell: View {
 
 #Preview {
     BookingListCell(item: BookingItem(
-        dateTime: "15/02/2026   00:05:05",
-        price: "£81.60",
-        bookingNo: "943",
-        carRegNo: "N44BYG",
-        addressLine: "22 Cornmill Dr, Liversedge WF15, UK Sheffield, UK",
-        status: .completed
+        assignStatus: "complete",
+        date: "15/02/2026",
+        time: "00:05:05",
+        bookingId: "943",
+        vehicleNo: "N44BYG",
+        sourceAddress: "22 Cornmill Dr, Liversedge WF15, UK",
+        destinationAddress: "Sheffield, UK",
+        paymentStatus: "0",
+        totalAmount: "81.60",
+        driverTip: "0",
+        baseFare: "78.60"
     ))
 }

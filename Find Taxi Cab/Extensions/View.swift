@@ -24,6 +24,36 @@ extension View {
         )
     }
     
+    /// Presents the receipt as a centred popover over a dimmed backdrop, dismissed
+    /// by tapping outside it. Android shows this as a `DialogFragment`, which has
+    /// the same feel — a sheet slides up from the bottom and reads as a different
+    /// kind of moment.
+    ///
+    /// Driven by the fare itself rather than a separate boolean: there is no state
+    /// where the receipt should be up without a fare to show, so binding the two
+    /// together removes the chance of them disagreeing.
+    func receiptPopup(
+        context: Binding<ReceiptContext?>,
+        onFinished: @escaping () -> Void = {}
+    ) -> some View {
+
+        self.overlay {
+
+            if let value = context.wrappedValue {
+
+                // `ReceiptFlowView` owns its own backdrops — it needs two, so the
+                // card dialog can dim the receipt behind it independently.
+                ReceiptFlowView(context: value) {
+                    context.wrappedValue = nil
+                    onFinished()
+                }
+                .transition(.opacity)
+                .zIndex(999)
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: context.wrappedValue)
+    }
+
     func cardStyle() -> some View {
         modifier(CardModifier())
     }
@@ -84,16 +114,34 @@ extension String {
 
 extension Date {
 
-    var apiDate: String {
+    /// Fixed-format output for the API, never for display.
+    ///
+    /// The locale is pinned to `en_US_POSIX` deliberately. Without it a
+    /// `DateFormatter` follows the device: on a phone with 24-Hour Time switched
+    /// off, `HH` still renders as "2:32 PM", and under a non-Gregorian calendar
+    /// `yyyy` is not the Gregorian year at all. Either one produces a booking the
+    /// backend cannot store.
+    private static let apiFormatter: DateFormatter = {
+
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        return formatter
+    }()
+
+    private func apiString(format: String) -> String {
+
+        let formatter = Self.apiFormatter
+        formatter.dateFormat = format
         return formatter.string(from: self)
     }
 
+    var apiDate: String {
+        apiString(format: "yyyy-MM-dd")
+    }
+
     var apiTime: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: self)
+        apiString(format: "HH:mm")
     }
 }
 

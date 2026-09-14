@@ -29,11 +29,20 @@ extension Endpoint {
 
 enum CustomerAPI: Endpoint {
     
+    /// Mirrors Android's `UploadProfileActivity.onSubmit()` field-for-field. The
+    /// card trio is what `get_card_details` later reads back, so dropping any of
+    /// it leaves the customer with no usable card on file.
     case register(
+        name: String,
         email: String,
         phone: String,
         password: String,
+        address: String,
+        postalCode: String,
+        cardHolderName: String,
         cardNumber: String,
+        cardMonth: String,
+        cardYear: String,
         profilePhoto: String?
     )
     
@@ -68,15 +77,51 @@ enum CustomerAPI: Endpoint {
     )
     
     case getCustomerStatus
-    
+
     case getNearDrivers(
         lat: String,
         lng: String
     )
+
+    /// Powers the live-tracking poll — Android's `TrackingActivity` calls this every
+    /// 5000 ms via `Handler.postDelayed` while a trip is in progress, repositioning
+    /// the driver marker each tick. No iOS screen calls this yet; the endpoint is
+    /// wired up ahead of that screen existing.
+    case getDriverLatLng(driverId: String)
     
-    case editCardDetails(parameters: Parameters)
+    /// Mirrors Android's `AddCardActivity.updateCard()` — Settings ▸ Edit Credit
+    /// Card. Same six fields, same form encoding.
+    case editCardDetails(
+        cardNumber: String,
+        cardHolderName: String,
+        cardMonth: String,
+        cardYear: String,
+        cvv: String
+    )
     
     case getCardDetails
+
+    /// `/do_payment` — settles a completed booking. Mirrors Android's
+    /// `InvoiceFragment.doPayment()`: the rider's rating, comment and tip ride
+    /// along with the card details in this single call, so paying is what submits
+    /// the feedback too. No amount is sent — the server computes what to charge
+    /// from `booking_id`.
+    case doPayment(
+        bookingId: String,
+        card: String,
+        month: String,
+        year: String,
+        cvc: String,
+        code: String,
+        feedback: String,
+        rating: String,
+        driverTip: String,
+        amount: String
+    )
+
+    /// `/check_coupon` — validates a promo code. Android only surfaces the
+    /// returned message; it does not alter the displayed total.
+    case checkCoupon(code: String)
     
     case customerFeedback(
         bookingId: String,
@@ -104,16 +149,15 @@ enum CustomerAPI: Endpoint {
         dropAddress: String,
         vehicleType: String,
         passengers: String,
+        vehicleSeater: String,
         specialNeed: String,
         latFrom: String,
         longFrom: String,
         latTo: String,
         longTo: String,
-        date: String?,
-        time: String?
+        date: String,
+        time: String
     )
-    
-    case getBookingData(bookingId: String)
     
     case cancelBooking(bookingId: String)
     
@@ -177,15 +221,26 @@ extension CustomerAPI {
             
         case .getNearDrivers:
             return "/get_neardriver"
+
+        case .getDriverLatLng:
+            return "/get_driverlatlng"
             
         case .editCardDetails:
             return "/edit_card_detaile"
             
         case .getCardDetails:
             return "/get_card_details"
+
+        case .doPayment:
+            return "/do_payment"
+
+        case .checkCoupon:
+            return "/check_coupon"
             
         case .customerFeedback:
-            return "/customer_feedback"
+            // Matches Android's TrackingActivity.submitFeedback() → leaveFeedback(),
+            // which posts to api/driver_feedback, not api/customer_feedback.
+            return "/driver_feedback"
             
         case .lastBooking:
             return "/client_last_book"
@@ -198,9 +253,6 @@ extension CustomerAPI {
             
         case .createBooking:
             return "/add_booking"
-            
-        case .getBookingData:
-            return "/get_bookdata"
             
         case .cancelBooking:
             return "/cancel_book_client"
@@ -238,18 +290,34 @@ extension CustomerAPI {
         switch self {
             
         case .register(
+            let name,
             let email,
             let phone,
             let password,
+            let address,
+            let postalCode,
+            let cardHolderName,
             let cardNumber,
+            let cardMonth,
+            let cardYear,
             let profilePhoto
         ):
             return [
+                "profile_photo": profilePhoto ?? "",
+                "cust_name": name,
                 "email": email,
                 "phoneno": phone,
+                "address": address,
                 "password": password,
+                "postalcode": postalCode,
+                "card_holder_name": cardHolderName,
                 "card_number": cardNumber,
-                "profile_photo": profilePhoto ?? ""
+                "card_month": cardMonth,
+                "card_year": cardYear,
+                // Not in the Android map, but the backend has been receiving it
+                // from this client since launch — left in place so push routing
+                // keeps working the way it does today.
+                "device_type": "ios"
             ]
             
         case .login(
@@ -330,18 +398,74 @@ extension CustomerAPI {
                 "lat": lat,
                 "long": lng
             ]
+
+        case .getDriverLatLng(let driverId):
+            // Matches Android's TrackingActivity.getCurrentDriverLocation():
+            // param.put("driver_id", driver_id)
+            return [
+                "driver_id": driverId
+            ]
             
-        case .editCardDetails(let parameters):
-            
-            var params = parameters
-            params["custid"] = custId
-            return params
+        case .editCardDetails(
+            let cardNumber,
+            let cardHolderName,
+            let cardMonth,
+            let cardYear,
+            let cvv
+        ):
+            return [
+                "custid": custId,
+                "card_number": cardNumber,
+                "card_holder_name": cardHolderName,
+                "card_month": cardMonth,
+                "card_year": cardYear,
+                "cvv": cvv
+            ]
             
         case .getCardDetails:
             return [
                 "custid": custId
             ]
-            
+
+        case .doPayment(
+            let bookingId,
+            let card,
+            let month,
+            let year,
+            let cvc,
+            let code,
+            let feedback,
+            let rating,
+            let driverTip,
+            let amount
+        ):
+            // The first ten are key-for-key with Android's doPayment(): note
+            // `custid` (not cust_id) and `cvc` (not cvv).
+            //
+            // `amount` is the exception — Android sends no amount at all and lets
+            // the server derive the charge from `booking_id`, which is how a trip
+            // with `base_fair = 0` reached Stripe as a £0 charge and was refused.
+            // This is the total the customer was actually shown, booking fee
+            // included.
+            return [
+                "custid": custId,
+                "booking_id": bookingId,
+                "card": card,
+                "month": month,
+                "year": year,
+                "cvc": cvc,
+                "code": code,
+                "feedback": feedback,
+                "rating": rating,
+                "driver_tip": driverTip,
+                "amount": amount
+            ]
+
+        case .checkCoupon(let code):
+            return [
+                "code": code
+            ]
+
         case .customerFeedback(
             let bookingId,
             let feedback,
@@ -350,7 +474,7 @@ extension CustomerAPI {
             return [
                 "booking_id": bookingId,
                 "feedback": feedback,
-                "customer_rate": rate
+                "rate": rate
             ]
             
         case .lastBooking:
@@ -390,6 +514,7 @@ extension CustomerAPI {
             let dropAddress,
             let vehicleType,
             let passengers,
+            let vehicleSeater,
             let specialNeed,
             let latFrom,
             let longFrom,
@@ -398,26 +523,27 @@ extension CustomerAPI {
             let date,
             let time
         ):
-            return [
+            var params: Parameters = [
                 "customer_id": custId,
                 "pickupaddress": pickupAddress,
                 "dropaddress": dropAddress,
                 "vehicle_type": vehicleType,
                 "passengers": passengers,
+                "vehicle_seater": vehicleSeater,
                 "special_need": specialNeed,
                 "latfrom": latFrom,
                 "longifrom": longFrom,
                 "latto": latTo,
-                "longto": longTo,
-                "date": date ?? "",
-                "time": time ?? ""
+                "longto": longTo
             ]
-            
-        case .getBookingData(let bookingId):
-            return [
-                "id": custId,
-                "booking_id": bookingId
-            ]
+
+            // Android's addBooking() only includes date/time at all when the rider
+            // checked "advance" booking — immediate bookings omit the keys entirely
+            // rather than sending them empty.
+            if !date.isEmpty { params["date"] = date }
+            if !time.isEmpty { params["time"] = time }
+
+            return params
             
         case .cancelBooking(let bookingId):
             return [

@@ -54,7 +54,7 @@ struct ToastView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(AppFont.font(.semiBold, size: 16)).foregroundColor(toastType.titleColor)
                 if let subtitle = subtitle {
-                    Text(subtitle).font(AppFont.font(.regular, size: 14)).foregroundColor(.gray)
+                    Text(subtitle).font(AppFont.font(.regular, size: 14)).foregroundColor(colorScheme == .dark ? .white : .black)
                 }
             }
             Spacer()

@@ -61,12 +61,10 @@ final class LoginViewModel: ObservableObject {
                     
                     print("✅ LOGIN SUCCESS:", customer.custId)
                     AppState.shared.login(customerId: customer.custId, token: customer.token, customerName: customer.custName, email: customer.email)
-                    
-                    
-                    if !fcmToken.isEmpty {
-                        updateFCMToken(customerId: customer.custId, token: fcmToken)
-                    }
-                    
+
+                    // Session now exists — push the FCM token we already hold.
+                    FCMTokenManager.shared.registerWithServerIfLoggedIn()
+
                     loginState = .success("Login Successful")
                     
                 } else {
@@ -79,25 +77,6 @@ final class LoginViewModel: ObservableObject {
             } catch {
                 print("❌ LOGIN ERROR:", error.localizedDescription)
                 loginState = .failure(error.localizedDescription)
-            }
-        }
-    }
-    
-    private func updateFCMToken(customerId: String, token: String) {
-        
-        Task {
-            
-            do {
-                
-                let response: CommonResponse = try await APIClient.shared.request(CustomerAPI.updateFCMToken(token: token), responseType: CommonResponse.self)
-                
-                print("✅ FCM TOKEN UPDATED")
-                print(response)
-                
-            } catch {
-                
-                print("❌ FCM TOKEN UPDATE ERROR")
-                print(error.localizedDescription)
             }
         }
     }
@@ -146,55 +125,6 @@ final class LoginViewModel: ObservableObject {
             } catch {
                 
                 print("❌ CHANGE PASSWORD ERROR:", error.localizedDescription)
-                
-                errorMessage = error.localizedDescription
-                loginState = .failure(error.localizedDescription)
-            }
-        }
-    }
-    
-    func updateCardDetails(
-        cardNumber: String,
-        cardHolder: String,
-        month: String,
-        year: String
-    ) {
-        
-        guard !isLoading else { return }
-        
-        isLoading = true
-        errorMessage = nil
-        
-        Task {
-            
-            defer { isLoading = false }
-            
-            do {
-                
-                let response = try await APIClient.shared.updateCardDetails(
-                    cardNumber: cardNumber,
-                    cardHolder: cardHolder,
-                    month: month,
-                    year: year
-                )
-                
-                if response.result?.lowercased() == "success" {
-                    
-                    isLoading = false
-                    let message = response.message ?? "Card Updated"
-                    loginState = .success(message)
-                    
-                } else {
-                    
-                    let message = response.message ?? "Failed To Update Card"
-                    errorMessage = message
-                    loginState = .failure(message)
-                }
-                
-            } catch {
-                
-                print("❌ UPDATE CARD ERROR")
-                print(error)
                 
                 errorMessage = error.localizedDescription
                 loginState = .failure(error.localizedDescription)

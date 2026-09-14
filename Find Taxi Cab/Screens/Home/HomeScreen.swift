@@ -46,6 +46,16 @@ struct HomeScreen: View {
     private var homeViewModel = HomeViewModel()
     
     @State private var locationTimer = Timer.publish(every: 20, on: .main, in: .common).autoconnect()
+
+    @State private var showBlockedAlert = false
+
+    @StateObject
+    private var bookingViewModel = BookingViewModel()
+
+    /// Resume is a launch-time question, not something to re-ask every time this
+    /// screen reappears — otherwise popping back from tracking would immediately
+    /// push the rider into it again.
+    @State private var hasCheckedForActiveTrip = false
     
     var body: some View {
         
@@ -99,6 +109,36 @@ struct HomeScreen: View {
         .onAppear {
             locationService.requestLocation()
             locationService.startTracking()
+
+            // Closed the app mid-trip? Go straight back to live tracking, the
+            // automatic version of Android's BookingPage "Continue" button.
+            if !hasCheckedForActiveTrip {
+                hasCheckedForActiveTrip = true
+                bookingViewModel.restoreActiveTrip()
+            }
+        }
+        .onChange(of: bookingViewModel.restorableTrip) { trip in
+
+            guard let trip, let bookingId = trip.bookingId else { return }
+
+            bookingViewModel.restorableTrip = nil
+
+            // `client_last_book` returns the addresses but no coordinates, so a
+            // resumed trip shows the driver live without a drawn route.
+            router.push(
+                .tracking(
+                    TripContext(
+                        bookingId: bookingId,
+                        driverId: trip.driverId ?? "",
+                        driverName: trip.driverName ?? "",
+                        vehicleNo: trip.vehicleNo ?? "",
+                        driverMobile: trip.driverMobile ?? "",
+                        pickupAddress: trip.sourceAddress ?? "",
+                        destinationAddress: trip.destinationAddress ?? "",
+                        assignStatus: trip.assignStatus ?? ""
+                    )
+                )
+            )
         }
         .onChange(of: locationService.currentAddress) { address in
             
@@ -139,24 +179,44 @@ struct HomeScreen: View {
             }
         }
         .onReceive(locationTimer) { _ in
-            
+
             guard let location = locationService.currentLocation else {
                 print("❌ currentLocation is nil")
                 return
             }
-            
+
             homeViewModel.updateLocation(
                 latitude: location.coordinate.latitude,
                 longitude: location.coordinate.longitude
             )
         }
+        // HomeScreen stays in the nav stack for as long as the rider is logged in —
+        // the same role Android's always-alive MainActivity plays — so it's the
+        // one place that should always catch a `block` push, however deep the
+        // rider has navigated into the booking flow.
+        .onReceive(NotificationManager.shared.$pendingNotification) { payload in
+
+            guard let payload,
+                  NotificationManager.shared.customerAction(for: payload) == .accountBlocked else {
+                return
+            }
+
+            showBlockedAlert = true
+        }
+        .alert("Account Blocked",
+               isPresented: $showBlockedAlert) {
+
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Your account has been blocked by the admin.")
+        }
         .alert("Logout",
                isPresented: $showLogoutAlert) {
             
             Button("NO", role: .cancel) {
-                viewModel.deleteAccount(id: "\(AuthManager.shared.customerId)", router: router)
-                
-                router.push(.landingPage)
+//                viewModel.deleteAccount(id: "\(AuthManager.shared.customerId)", router: router)
+//                
+//                router.push(.landingPage)
             }
             
             Button("YES", role: .destructive) {

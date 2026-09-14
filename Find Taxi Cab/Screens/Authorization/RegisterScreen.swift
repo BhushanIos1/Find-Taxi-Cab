@@ -29,12 +29,16 @@ struct RegisterScreen: View {
     @State private var passwordError: String?
     
     @State private var address = ""
+    @State private var addressError: String?
     
     @State private var postCard = ""
+    @State private var postCardError: String?
     
     @State private var cardNumber = ""
+    @State private var cardNumberError: String?
     
     @State private var nameOnCard = ""
+    @State private var nameOnCardError: String?
     
     @State private var month = ""
     @State private var year = ""
@@ -59,13 +63,13 @@ struct RegisterScreen: View {
                                      foregroundColor: Color(uiColor: .label))
                         AppPasswordField(title: "Password", password: $password, error: passwordError,
                                          foregroundColor: Color(uiColor: .label))
-                        AppTextField(title: "Address", text: $address, error: nil,
+                        AppTextField(title: "Address", text: $address, error: addressError,
                                      foregroundColor: Color(uiColor: .label))
-                        AppTextField(title: "Post Card", text: $postCard, error: nil,
+                        AppTextField(title: "Postal Code", text: $postCard, error: postCardError,
                                      foregroundColor: Color(uiColor: .label))
-                        AppTextField(title: "Card Number", text: $cardNumber, error: nil, keyboard: .numberPad,
+                        AppTextField(title: "Card Number", text: $cardNumber, error: cardNumberError, keyboard: .numberPad,
                                      foregroundColor: Color(uiColor: .label))
-                        AppTextField(title: "Name On Card", text: $nameOnCard, error: nil,
+                        AppTextField(title: "Name On Card", text: $nameOnCard, error: nameOnCardError,
                                      foregroundColor: Color(uiColor: .label))
                         
                         ExpiryDateField(month: $month, year: $year)
@@ -139,48 +143,89 @@ private extension RegisterScreen {
     var bottomSection: some View {
         
         Button {
-            
-            var isValid = true
-            
-            //            if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            //                nameError = "Name is required"
-            //            } else {
-            //                nameError = nil
-            //            }
-            
-            if email.isEmpty {
-                emailError = "Email is required"
-                isValid = false
-            } else if !ValidationHelper.isValidEmail(email) {
-                emailError = "Enter valid email"
-                isValid = false
-            } else {
-                emailError = nil
-            }
-            
-            if phone.isEmpty {
-                phoneError = "Phone is required"
-                isValid = false
-            } else {
-                phoneError = nil
-            }
-            
-            if password.isEmpty {
-                passwordError = "Password required"
-                isValid = false
-            } else {
-                passwordError = nil
-            }
-            
-            guard isValid else { return }
-            
-            viewModel.register(email: email, phone: phone, password: password, cardNumber: cardNumber, router: router)
+            submit()
         } label: {
             
             Text("SIGN UP")
                 .primaryButtonStyle()
         }
         .padding(20)
+    }
+    
+    /// Mirrors `RegisterActivity.validate()` — every field on this form is
+    /// required over on Android, and the card trio has to be complete or the
+    /// customer ends up registered with nothing `get_card_details` can return.
+    func submit() {
+        
+        var isValid = true
+        
+        func check(_ value: String, _ message: String) -> String? {
+            
+            guard value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                return nil
+            }
+            
+            isValid = false
+            return message
+        }
+        
+        nameError = check(name, "Name is required")
+        
+        if email.isEmpty {
+            emailError = "Email is required"
+            isValid = false
+        } else if !ValidationHelper.isValidEmail(email) {
+            emailError = "Enter valid email"
+            isValid = false
+        } else {
+            emailError = nil
+        }
+        
+        phoneError = check(phone, "Phone is required")
+        
+        if password.isEmpty {
+            passwordError = "Password required"
+            isValid = false
+        } else if password.count < 6 {
+            passwordError = "Password must be at least 6 characters"
+            isValid = false
+        } else {
+            passwordError = nil
+        }
+        
+        addressError = check(address, "Address is required")
+        postCardError = check(postCard, "Postal code is required")
+        cardNumberError = check(cardNumber, "Card number is required")
+        nameOnCardError = check(nameOnCard, "Name on card is required")
+        
+        // The expiry pickers have nowhere to show an inline error, so this one
+        // surfaces the way Android does — as a toast.
+        if month.isEmpty || year.isEmpty {
+            
+            toastManager.showToast(
+                type: .error,
+                title: "Invalid Expiry",
+                subtitle: "Please select the card expiry month and year."
+            )
+            
+            isValid = false
+        }
+        
+        guard isValid else { return }
+        
+        viewModel.register(
+            name: name,
+            email: email,
+            phone: phone,
+            password: password,
+            address: address,
+            postalCode: postCard,
+            cardHolderName: nameOnCard,
+            cardNumber: cardNumber,
+            cardMonth: month,
+            cardYear: year,
+            router: router
+        )
     }
 }
 

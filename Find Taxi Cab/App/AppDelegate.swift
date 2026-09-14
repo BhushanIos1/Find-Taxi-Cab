@@ -26,10 +26,9 @@ class AppDelegate: NSObject,
     ) -> Bool {
         
         FirebaseApp.configure()
+        Messaging.messaging().delegate = self
         
         setupNotifications(application)
-        
-        Messaging.messaging().delegate = self
         
         IQKeyboardManager.shared.isEnabled = true
         IQKeyboardManager.shared.resignOnTouchOutside = true
@@ -46,6 +45,7 @@ class AppDelegate: NSObject,
 private extension AppDelegate {
     
     func setupNotifications(_ application: UIApplication) {
+        
         UNUserNotificationCenter.current().delegate = self
         
         UNUserNotificationCenter.current().requestAuthorization(
@@ -104,6 +104,58 @@ extension AppDelegate: MessagingDelegate {
     }
 }
 
+extension AppDelegate {
+
+    /// Data-only / silent pushes (`content-available`, no `aps.alert`) land here in
+    /// every app state — foreground, background, or freshly launched from a push.
+    /// This is the direct counterpart of `MyFireBaseMessagingService.onMessageReceived()`
+    /// on Android, which is why every status-driven push (`book_accept`,
+    /// `book_pickcustomer`, `nodriver`, `book_cancelled`, `book_complete`, `block`)
+    /// is sent silent rather than as a visible alert.
+    func application(
+        _ application: UIApplication,
+        didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+        fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+    ) {
+        NotificationManager.shared.handle(userInfo: userInfo)
+        completionHandler(.newData)
+    }
+
+    /// Fires only for pushes that carry a visible `aps.alert` while the app is in the
+    /// foreground (e.g. a combined notification+data payload).
+    func userNotificationCenter(
+        _: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+
+        let userInfo = notification.request.content.userInfo
+
+        print("🔔 FOREGROUND PUSH")
+
+        NotificationManager.shared.handle(userInfo: userInfo)
+        completionHandler([.banner, .list, .sound])
+    }
+
+    /// User tapped a visible notification (banner or from Notification Center).
+    func userNotificationCenter(
+        _: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let userInfo = response.notification.request.content.userInfo
+
+        print("🔔 NOTIFICATION TAPPED")
+
+        NotificationManager.shared.handle(userInfo: userInfo)
+        completionHandler()
+    }
+}
+
 struct MapAPIKey {
     static let apiKey = "AIzaSyCRNoYcfxw8v8YOT35Z4BRhK-6J22-Qv-Y"
+
+    /// Directions API is billed separately from Maps SDK, so it gets its own key
+    /// — same split the driver app uses.
+    static let directionApiKey = "AIzaSyA9hS0Vp12mgfr3xLU1kVk7Gg-Q8cgWraE"
 }

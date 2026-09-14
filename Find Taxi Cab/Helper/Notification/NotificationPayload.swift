@@ -33,3 +33,4 @@ struct NotificationPayload {
             userInfo["body"] as? String
     }
 }
+

@@ -29,7 +29,10 @@ struct RouteBuilder {
             
         case .getCabScreen(let pickupAddress, let destinationAddress, let fromLat, let fromLong, let toLat, let toLong, let specialDisability, let passengerCount):
             GetCabScreen(pickupAddress: pickupAddress, destinationAddress: destinationAddress, fromLat: fromLat, fromLong: fromLong, toLat: toLat, toLong: toLong, disability: specialDisability, numberOfPassenger: passengerCount)
-            
+
+        case .tracking(let trip):
+            TrackingScreen(trip: trip)
+
         case .history:
             HistoryScreen()
             
