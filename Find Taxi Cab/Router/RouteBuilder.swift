@@ -33,6 +33,9 @@ struct RouteBuilder {
         case .tracking(let trip):
             TrackingScreen(trip: trip)
 
+        case .chat(let bookingId):
+            ChatView(bookingId: bookingId)
+
         case .history:
             HistoryScreen()
             

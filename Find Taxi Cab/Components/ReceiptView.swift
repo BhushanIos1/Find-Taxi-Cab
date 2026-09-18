@@ -29,6 +29,13 @@ struct ReceiptView: View {
     /// charge. `do_payment` sends no amount, so the server's figure always wins.
     static let fallbackBookingFee: Double = 1.00
 
+    /// Most a customer may tip on one trip.
+    ///
+    /// Worth enforcing on the way in rather than letting the charge fail or
+    /// succeed for an unintended amount: the tip is added straight to `amount`,
+    /// and a mistyped `200` for `20` would be charged exactly as typed.
+    static let maximumTip: Double = 20.00
+
     @State private var isTipSelected = false
 
     /// What the customer typed into the tip field. Was bound to `$comment` —
@@ -125,8 +132,18 @@ struct ReceiptView: View {
 
                         Rectangle()
                             .frame(height: 1)
-                            .foregroundColor(isTipFocused ? AppColors.primaryYellow : .gray.opacity(0.5))
+                            .foregroundColor(tipError != nil
+                                             ? Color.red
+                                             : (isTipFocused ? AppColors.primaryYellow : .gray.opacity(0.5)))
                             .animation(.easeInOut(duration: 0.2), value: isTipFocused)
+
+                        if let tipError {
+
+                            Text(tipError)
+                                .font(AppFont.font(.regular, size: 13))
+                                .foregroundColor(.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
                     .padding(.bottom, 10)
                     .transition(.opacity.combined(with: .move(edge: .top)))
@@ -179,9 +196,12 @@ struct ReceiptView: View {
                         .font(AppFont.font(.medium, size: 18))
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(AppColors.greenAppColor)
+                        .background(canSubmit
+                                    ? AppColors.greenAppColor
+                                    : AppColors.greenAppColor.opacity(0.4))
                         .foregroundColor(.white)
                 }
+                .disabled(!canSubmit)
 
                 Button {
                     onDismiss()
@@ -221,7 +241,10 @@ private extension ReceiptView {
     /// matches either.
     var tipAmount: Double? {
 
-        if isTipSelected, let typed = Double(enteredTip), typed > 0 {
+        if isTipSelected,
+           let typed = Double(enteredTip),
+           typed > 0,
+           typed <= ReceiptView.maximumTip {
             return typed
         }
 
@@ -231,6 +254,32 @@ private extension ReceiptView {
     /// The tip as it will be sent, trimmed and validated.
     var enteredTip: String {
         isTipSelected ? tipText.trimmingCharacters(in: .whitespaces) : ""
+    }
+
+    /// Why the typed tip can't be used, if it can't.
+    var tipError: String? {
+
+        guard isTipSelected, !enteredTip.isEmpty else { return nil }
+
+        guard let typed = Double(enteredTip) else {
+            return "Enter a valid tip amount."
+        }
+
+        if typed > ReceiptView.maximumTip {
+            return String(format: "Tip cannot be more than £%.2f.", ReceiptView.maximumTip)
+        }
+
+        if typed < 0 {
+            return "Tip cannot be negative."
+        }
+
+        return nil
+    }
+
+    /// Blocked rather than silently clamped — a customer who typed 200 meaning
+    /// 20 should be told, not quietly charged 20.
+    var canSubmit: Bool {
+        tipError == nil
     }
 
     var baseFareText: String {

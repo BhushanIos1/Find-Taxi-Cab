@@ -70,12 +70,30 @@ extension APIClient {
         }
         
         do {
-            // ✅ First try standard wrapper
+            // Decode the response as what the caller actually asked for, first.
+            //
+            // This used to try `APIResponse<T>` ahead of the direct decode, and
+            // that quietly broke every endpoint answering
+            // `{"result": "success", "data": { ...something else... }}`.
+            // `/miles_cal` is the clearest case: the wrapper matched, saw
+            // `result == "success"`, then decoded its *inner* `data` object as
+            // the caller's `CommonResponse`. Every field on that type is
+            // optional, so it "succeeded" — returning an empty value with
+            // `result == nil`. The caller read that as a failure and reported
+            // "Could Not Submit Fare" for a fare the server had accepted.
+            //
+            // Trying T first means the envelope is only consulted when the
+            // response genuinely isn't the shape the caller expected.
+            if let direct = try? JSONDecoder().decode(T.self, from: data) {
+                return direct
+            }
+            
             if let decoded = try? JSONDecoder().decode(APIResponse<T>.self, from: data) {
                 
                 if decoded.isSuccess {
                     
                     if let data = decoded.data {
+                        print("ℹ️ Decoded via APIResponse envelope")
                         return data
                     }
                     
@@ -85,7 +103,7 @@ extension APIClient {
                 }
             }
             
-            // ✅ SECOND: Try direct decoding (YOUR CASE)
+            // Neither shape fits — let the real error surface.
             let direct = try JSONDecoder().decode(T.self, from: data)
             return direct
             

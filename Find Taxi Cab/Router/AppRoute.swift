@@ -35,6 +35,8 @@ enum AppRoute: Hashable {
 
     case tracking(TripContext)
 
+    case chat(bookingId: String)
+
     case history
     case booking
     case emergency

@@ -147,7 +147,7 @@ extension AppDelegate {
 
         print("🔔 NOTIFICATION TAPPED")
 
-        NotificationManager.shared.handle(userInfo: userInfo)
+        NotificationManager.shared.handle(userInfo: userInfo, wasTapped: true)
         completionHandler()
     }
 }

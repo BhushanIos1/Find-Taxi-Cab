@@ -302,7 +302,9 @@ private extension TrackingScreen {
                     background: AppColors.greenAppColor
                 )
             }
+            // Calling needs a number; chat does not.
             .disabled(driverMobile.isEmpty)
+            .opacity(driverMobile.isEmpty ? 0.5 : 1)
 
             Button {
                 messageDriver()
@@ -315,9 +317,7 @@ private extension TrackingScreen {
                     hasBorder: true
                 )
             }
-            .disabled(driverMobile.isEmpty)
         }
-        .opacity(driverMobile.isEmpty ? 0.5 : 1)
     }
 
     func contactLabel(
@@ -583,14 +583,11 @@ private extension TrackingScreen {
         router.popTo(.home)
     }
 
+    /// In-app chat rather than the SMS composer: it keeps the conversation
+    /// attached to the booking, works without either party knowing the other's
+    /// number, and the driver sees it inside their own app.
     func messageDriver() {
-
-        guard !driverMobile.isEmpty,
-              let url = URL(string: "sms:\(driverMobile)") else {
-            return
-        }
-
-        UIApplication.shared.open(url)
+        router.push(.chat(bookingId: trip.bookingId))
     }
 }
 

@@ -19,11 +19,18 @@ final class NotificationManager: NSObject, ObservableObject {
 
     @Published var pendingNotification: NotificationPayload?
 
+    /// Set only when the user *taps* a chat notification — the booking whose
+    /// thread should open. A push that merely arrives must not yank anyone out
+    /// of what they were doing, so background deliveries never write this.
+    @Published var chatToOpen: String?
+
     private override init() {
         super.init()
     }
 
-    func handle(userInfo: [AnyHashable: Any]) {
+    /// - Parameter wasTapped: true when the user opened the app from the
+    ///   notification itself, which is the only case that should navigate.
+    func handle(userInfo: [AnyHashable: Any], wasTapped: Bool = false) {
 
         let payload = NotificationPayload(
             userInfo: userInfo
@@ -37,14 +44,33 @@ final class NotificationManager: NSObject, ObservableObject {
         Booking ID: \(payload.bookingId ?? "nil")
         Title: \(payload.title ?? "nil")
         Message: \(payload.message ?? "nil")
+        Was tapped: \(wasTapped)
+        Raw: \(userInfo)
         =========================
 
         """)
 
+        if payload.status == .unknown {
+            // Names the value so an unhandled push can be identified rather than
+            // disappearing without trace.
+            print("⚠️ UNHANDLED PUSH STATUS: \(payload.rawStatus ?? "none")")
+        }
+
         presentLocalAlertIfNeeded(for: payload, rawUserInfo: userInfo)
 
         DispatchQueue.main.async {
+
             self.pendingNotification = payload
+
+            guard wasTapped,
+                  payload.status == .chatMessage,
+                  let bookingId = payload.bookingId,
+                  !bookingId.isEmpty else {
+                return
+            }
+
+            print("💬 Opening chat for booking \(bookingId) from a tapped notification")
+            self.chatToOpen = bookingId
         }
     }
 }
@@ -123,6 +149,11 @@ extension NotificationManager {
 
         case .noDriver:
             return .noDriverAvailable
+
+        case .chatMessage:
+            // Navigation is handled by `chatToOpen`, and only on a tap — a
+            // screen reacting to this one would hijack the rider mid-trip.
+            return .none
 
         case .blockAccount:
             return .accountBlocked

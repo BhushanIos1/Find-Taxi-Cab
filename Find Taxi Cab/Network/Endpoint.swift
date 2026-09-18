@@ -10,12 +10,26 @@ import Alamofire
 protocol Endpoint {
     var path: String { get }
     var parameters: Parameters? { get }
+
+    /// A protocol requirement, not just an extension default — otherwise a
+    /// per-case override is never reached. `APIClient` holds endpoints as
+    /// `Endpoint`, and a member that only exists in the extension is dispatched
+    /// statically to that extension, quietly ignoring the enum's own version.
+    var baseURL: String { get }
 }
 
 extension Endpoint {
     
+    /// Everything the backend serves lives under here.
+    static var serverRoot: String {
+        "http://view.findtaxicab.com/admin"
+    }
+    
+    /// Most endpoints sit in `admin/api/`. The chat endpoints do not — they are
+    /// served straight from `admin/`, and requesting them under `api/` returns a
+    /// 404 HTML page rather than JSON.
     var baseURL: String {
-        return "http://view.findtaxicab.com/admin/api"
+        Self.serverRoot + "/api"
     }
     
     var method: HTTPMethod {
@@ -28,6 +42,19 @@ extension Endpoint {
 }
 
 enum CustomerAPI: Endpoint {
+    
+    /// Chat is the one group served from `admin/` rather than `admin/api/`.
+    var baseURL: String {
+        
+        switch self {
+            
+        case .sendChatMessage, .chatMessages, .markChatRead:
+            return Self.serverRoot
+            
+        default:
+            return Self.serverRoot + "/api"
+        }
+    }
     
     /// Mirrors Android's `UploadProfileActivity.onSubmit()` field-for-field. The
     /// card trio is what `get_card_details` later reads back, so dropping any of
@@ -118,6 +145,17 @@ enum CustomerAPI: Endpoint {
         driverTip: String,
         amount: String
     )
+
+    // MARK: - Chat
+    //
+    // These sit under `/chat/...` rather than alongside the `api/<name>` calls.
+    // `baseURL` already ends in `/admin/api`, so the collection's
+    // `{{base_url}}/chat/send_message` resolves correctly as long as `base_url`
+    // is that same root.
+
+    case sendChatMessage(bookingId: String, message: String)
+    case chatMessages(bookingId: String, afterId: String)
+    case markChatRead(bookingId: String)
 
     /// `/check_coupon` — validates a promo code. Android only surfaces the
     /// returned message; it does not alter the displayed total.
@@ -233,6 +271,15 @@ extension CustomerAPI {
 
         case .doPayment:
             return "/do_payment"
+
+        case .sendChatMessage:
+            return "/chat/send_message"
+
+        case .chatMessages:
+            return "/chat/get_messages"
+
+        case .markChatRead:
+            return "/chat/mark_read"
 
         case .checkCoupon:
             return "/check_coupon"
@@ -459,6 +506,28 @@ extension CustomerAPI {
                 "rating": rating,
                 "driver_tip": driverTip,
                 "amount": amount
+            ]
+
+        case .sendChatMessage(let bookingId, let message):
+            return [
+                "booking_id": bookingId,
+                "sender_type": "customer",
+                "sender_id": custId,
+                "message": message
+            ]
+
+        case .chatMessages(let bookingId, let afterId):
+            return [
+                "booking_id": bookingId,
+                "after_id": afterId
+            ]
+
+        case .markChatRead(let bookingId):
+            // `reader_type` is who is *doing* the reading — this marks the
+            // driver's messages as seen.
+            return [
+                "booking_id": bookingId,
+                "reader_type": "customer"
             ]
 
         case .checkCoupon(let code):

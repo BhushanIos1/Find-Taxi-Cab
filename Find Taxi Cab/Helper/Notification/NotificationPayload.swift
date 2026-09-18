@@ -8,6 +8,12 @@
 struct NotificationPayload {
     
     let status: NotificationStatus
+
+    /// Exactly what the server sent, kept for the log line when `status` comes
+    /// out `.unknown` — otherwise an unrecognised push is indistinguishable
+    /// from no push at all.
+    let rawStatus: String?
+
     let bookingId: String?
     let title: String?
     let message: String?
@@ -18,6 +24,7 @@ struct NotificationPayload {
             userInfo["status"] as? String ??
             userInfo["tag"] as? String
         
+        self.rawStatus = statusString
         self.status = NotificationStatus(value: statusString)
         
         self.bookingId =

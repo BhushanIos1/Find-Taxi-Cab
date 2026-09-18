@@ -110,6 +110,8 @@ struct HomeScreen: View {
             locationService.requestLocation()
             locationService.startTracking()
 
+            openPendingChatIfNeeded()
+
             // Closed the app mid-trip? Go straight back to live tracking, the
             // automatic version of Android's BookingPage "Continue" button.
             if !hasCheckedForActiveTrip {
@@ -203,6 +205,12 @@ struct HomeScreen: View {
 
             showBlockedAlert = true
         }
+        // Chat opened from a tapped notification. Handled here because Home is
+        // the one screen alive for as long as the rider is logged in, whatever
+        // they have navigated into since.
+        .onReceive(NotificationManager.shared.$chatToOpen) { _ in
+            openPendingChatIfNeeded()
+        }
         .alert("Account Blocked",
                isPresented: $showBlockedAlert) {
 
@@ -281,6 +289,26 @@ struct HomeScreen: View {
             }
         }
         .overlay(GlobalToastView().environmentObject(toastManager))
+    }
+}
+
+private extension HomeScreen {
+
+    /// Consumes `chatToOpen` if it's set — from either the live tap arriving
+    /// while this screen is already up, or one that landed before this screen
+    /// had mounted at all (a cold launch straight from a tapped notification,
+    /// where `@Published` has nothing to replay to a subscriber that joins
+    /// late). Idempotent: safe to call from both `.onAppear` and `.onReceive`.
+    func openPendingChatIfNeeded() {
+
+        guard let bookingId = NotificationManager.shared.chatToOpen,
+              !bookingId.isEmpty else {
+            return
+        }
+
+        NotificationManager.shared.chatToOpen = nil
+
+        router.push(.chat(bookingId: bookingId))
     }
 }
 
