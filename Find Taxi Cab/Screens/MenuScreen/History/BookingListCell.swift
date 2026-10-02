@@ -21,10 +21,10 @@ struct BookingListCell: View {
 
             HStack(alignment: .top) {
 
-                Image(systemName: "car.fill")
+                Image("estimatedTaxi")
                     .resizable()
                     .foregroundColor(.black)
-                    .frame(width: 72, height: 32)
+                    .frame(width: 72, height: 56)
 
                 VStack(alignment: .leading, spacing: 20) {
 

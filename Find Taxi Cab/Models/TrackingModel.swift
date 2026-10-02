@@ -42,6 +42,14 @@ struct TrackingDriverInfo: Decodable, Equatable {
     let driverLng: String?
     let driverMobile: String?
 
+    /// The trip-start code the driver asks for — `send_ride_otp` populates this
+    /// server-side once the driver taps ON BOARD. Neither Android nor iOS ever
+    /// read it before; the field itself was already visible in this same
+    /// booking row on the driver side (`get_bookdata` returns `ride_otp`), which
+    /// is the basis for reading it here too. If the real key differs, this comes
+    /// back nil and the popup simply never fires — nothing else depends on it.
+    let rideOtp: String?
+
     enum CodingKeys: String, CodingKey {
         case driverId = "driver_id"
         case driverName = "drivername"
@@ -49,6 +57,7 @@ struct TrackingDriverInfo: Decodable, Equatable {
         case driverLat = "driver_lat"
         case driverLng = "driver_lng"
         case driverMobile = "contact_no"
+        case rideOtp = "ride_otp"
     }
 
     /// `driver_id` arrives as a bare number and the lat/lng as bare doubles. A
@@ -72,6 +81,11 @@ struct TrackingDriverInfo: Decodable, Equatable {
         driverLat = text(.driverLat)
         driverLng = text(.driverLng)
         driverMobile = text(.driverMobile)
+
+        // A 4-digit OTP is just as likely to arrive as a bare number as a
+        // string, matching every other field in this response.
+        let otp = text(.rideOtp)
+        rideOtp = (otp == "0") ? nil : otp
     }
 
     init(
@@ -80,7 +94,8 @@ struct TrackingDriverInfo: Decodable, Equatable {
         vehicleNo: String?,
         driverLat: String?,
         driverLng: String?,
-        driverMobile: String?
+        driverMobile: String?,
+        rideOtp: String? = nil
     ) {
         self.driverId = driverId
         self.driverName = driverName
@@ -88,6 +103,7 @@ struct TrackingDriverInfo: Decodable, Equatable {
         self.driverLat = driverLat
         self.driverLng = driverLng
         self.driverMobile = driverMobile
+        self.rideOtp = rideOtp
     }
 }
 

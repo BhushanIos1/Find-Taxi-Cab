@@ -32,6 +32,11 @@ struct TrackingScreen: View {
     @State private var showSOSConfirm = false
     @State private var showDriverCancelledAlert = false
 
+    /// `/cancel_book_client`'s own failure text — shown inline in
+    /// `CancelReasonPopup` rather than only as a toast, so the popup stays
+    /// open on failure and SUBMIT itself doubles as retry.
+    @State private var cancelErrorMessage: String?
+
     /// Live trip status shown in the navigation bar, advanced by the
     /// `book_pickcustomer` / `book_onboard` pushes.
     @State private var tripStatusText = "Taxi Confirmed"
@@ -142,7 +147,7 @@ struct TrackingScreen: View {
                     return
                 }
 
-                viewModel.startPolling(driverId: driverId)
+                viewModel.startPolling(driverId: driverId, bookingId: trip.bookingId)
             }
         }
         .onDisappear {
@@ -167,25 +172,42 @@ struct TrackingScreen: View {
 
             case .success(let message):
                 toastManager.showToast(type: .success, title: "Trip Cancelled", subtitle: message)
+                // Closes itself on success; a failure leaves it open below so
+                // the rider can retry without retyping the reason.
+                showCancelConfirm = false
+                cancelErrorMessage = nil
                 endTrip()
 
             case .failure(let message):
+                // `/cancel_book_client` documents real failure text —
+                // "Onboard booking cannot be cancelled" / "Book Status Not
+                // Changed" — surfaced here instead of being swallowed by a
+                // toast the rider may not even notice before it disappears.
                 toastManager.showToast(type: .error, title: "Failed", subtitle: message)
+                cancelErrorMessage = message
             }
 
             viewModel.cancelState = nil
         }
-        .alert("Cancel Trip?",
-               isPresented: $showCancelConfirm) {
+        .overlay {
 
-            Button("No", role: .cancel) { }
+            if showCancelConfirm {
 
-            Button("Yes, Cancel", role: .destructive) {
-                viewModel.cancelBooking(bookingId: trip.bookingId)
+                CancelReasonPopup(
+                    isSubmitting: viewModel.isCancelling,
+                    errorMessage: cancelErrorMessage,
+                    onSubmit: { reason in
+                        cancelErrorMessage = nil
+                        viewModel.cancelBooking(bookingId: trip.bookingId, reason: reason)
+                    },
+                    onDismiss: {
+                        showCancelConfirm = false
+                        cancelErrorMessage = nil
+                    }
+                )
             }
-        } message: {
-            Text("Are you sure you want to cancel this trip?")
         }
+        .animation(.easeInOut(duration: 0.2), value: showCancelConfirm)
         .alert("Emergency Call",
                isPresented: $showSOSConfirm) {
 
@@ -218,6 +240,18 @@ struct TrackingScreen: View {
             viewModel.fareDetails = nil
             endTrip()
         }
+        .overlay {
+
+            if let otp = viewModel.otpToShow {
+
+                TripOTPPopup(otp: otp) {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        viewModel.otpToShow = nil
+                    }
+                }
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: viewModel.otpToShow)
         .overlay(
             GlobalToastView()
                 .environmentObject(toastManager)
@@ -475,6 +509,7 @@ private extension TrackingScreen {
             if canCancel {
 
                 Button {
+                    cancelErrorMessage = nil
                     showCancelConfirm = true
                 } label: {
                     actionLabel(

@@ -17,6 +17,13 @@ final class TrackingViewModel: NSObject, ObservableObject {
     @Published var isCancelling = false
     @Published var cancelState: BookingState?
 
+    /// Set the moment `ride_otp` first appears on the booking — the driver has
+    /// tapped ON BOARD and asked the customer for it. Fires once per trip: there
+    /// is exactly one code to share, and re-showing it on every later poll tick
+    /// would just be noise once the customer has already seen it.
+    @Published var otpToShow: String?
+    private var hasShownOTP = false
+
     /// Live from the Directions API — "10 min" / "4.2 km" to whichever point the
     /// trip is currently heading for. Nil until the first route lands, so the UI
     /// can fall back to the booked figures rather than showing "0".
@@ -46,7 +53,33 @@ final class TrackingViewModel: NSObject, ObservableObject {
 
     private var driverMarker: GMSMarker?
     private var pickupMarker: GMSMarker?
-    private var routePolyline: GMSPolyline?
+
+    /// The route is drawn as three stacked strokes, the way Uber and Google Maps
+    /// both do it — the same pattern as the driver app's `NavigationViewModel`.
+    ///   • `traveledPolyline` — muted, the part already driven
+    ///   • `routeCasingPolyline` — dark, widest, the outline that lifts the route
+    ///     off the map and keeps it legible over roads, parks and satellite tiles
+    ///   • `routeCorePolyline` — the bright core, drawn on top
+    private var traveledPolyline: GMSPolyline?
+    private var routeCasingPolyline: GMSPolyline?
+    private var routeCorePolyline: GMSPolyline?
+
+    /// Small dots layered the same way as the line itself, sat over each
+    /// endpoint — `GMSPolyline` has no line-cap property, so every line it
+    /// draws is flat-cut, and without these the route reads as a rectangle
+    /// with pins stuck in it rather than one continuous rounded shape.
+    private var startCapMarker: GMSMarker?
+    private var endCapMarker: GMSMarker?
+
+    /// Kept so the driver marker can be snapped onto the route, and progress
+    /// recomputed against it, on every poll tick — the drawn polylines get
+    /// trimmed each time, so they can't be their own source.
+    private var fullRoutePath: GMSPath?
+
+    /// The driver marker's last placed (post-snap) position — used to derive
+    /// a heading from consecutive polls when there's no route yet to read a
+    /// segment bearing from.
+    private var lastDriverCoordinate: CLLocationCoordinate2D?
 
     /// Where the driver was when we last asked for a route, and when.
     private var lastRoutedDriverLocation: CLLocationCoordinate2D?
@@ -120,6 +153,14 @@ extension TrackingViewModel {
 
             driverInfo = info
 
+            if !hasShownOTP, let otp = info.rideOtp, !otp.isEmpty {
+
+                print("🔑 TRIP OTP RECEIVED for booking \(bookingId)")
+
+                hasShownOTP = true
+                otpToShow = otp
+            }
+
             if let latText = info.driverLat, let lat = Double(latText),
                let lngText = info.driverLng, let lng = Double(lngText),
                lat != 0 || lng != 0 {
@@ -141,7 +182,11 @@ extension TrackingViewModel {
 
 extension TrackingViewModel {
 
-    func startPolling(driverId: String) {
+    /// `bookingId` is only needed here to keep checking for the OTP appearing —
+    /// once it has been shown, this stops asking `get_bookdatatoclient` again on
+    /// every tick, so the poll goes back to being just the location fetch it
+    /// always was.
+    func startPolling(driverId: String, bookingId: String) {
 
         stopPolling()
 
@@ -151,7 +196,11 @@ extension TrackingViewModel {
         ) { [weak self] _ in
 
             Task { @MainActor [weak self] in
+
                 await self?.fetchDriverLocation(driverId: driverId)
+
+                guard let self, !self.hasShownOTP else { return }
+                await self.loadDriverDetails(bookingId: bookingId)
             }
         }
 
@@ -175,8 +224,23 @@ extension TrackingViewModel {
         pickupMarker?.map = nil
         pickupMarker = nil
 
-        routePolyline?.map = nil
-        routePolyline = nil
+        traveledPolyline?.map = nil
+        traveledPolyline = nil
+
+        routeCasingPolyline?.map = nil
+        routeCasingPolyline = nil
+
+        routeCorePolyline?.map = nil
+        routeCorePolyline = nil
+
+        startCapMarker?.map = nil
+        startCapMarker = nil
+
+        endCapMarker?.map = nil
+        endCapMarker = nil
+
+        fullRoutePath = nil
+        lastDriverCoordinate = nil
 
         hasFramedRoute = false
         lastRoutedDriverLocation = nil
@@ -247,9 +311,24 @@ extension TrackingViewModel {
 
 extension TrackingViewModel {
 
-    func moveDriverMarker(to coordinate: CLLocationCoordinate2D) {
+    /// `coordinate` is the raw polled fix. Uber-style map matching snaps it onto
+    /// the nearest point *on* the drawn route rather than placing the marker at
+    /// the raw value — a polled position that's a few meters off the road used
+    /// to show up as the taxi sitting just off the line it was supposedly
+    /// following. Falls back to the raw fix when there's no route yet, or the
+    /// driver is genuinely off it, rather than dragging them back onto a route
+    /// they're not on.
+    func moveDriverMarker(to rawCoordinate: CLLocationCoordinate2D) {
 
         guard let mapView else { return }
+
+        let snapped = fullRoutePath.flatMap { projectOntoRoute(rawCoordinate, path: $0) }
+        let coordinate = snapped?.coordinate ?? rawCoordinate
+
+        let bearing = snapped?.bearing
+            ?? headingSincePreviousFix(to: coordinate)
+            ?? driverMarker?.rotation
+            ?? 0
 
         if let driverMarker {
 
@@ -257,6 +336,7 @@ extension TrackingViewModel {
             CATransaction.begin()
             CATransaction.setAnimationDuration(1.0)
             driverMarker.position = coordinate
+            driverMarker.rotation = bearing
             CATransaction.commit()
 
         } else {
@@ -265,6 +345,8 @@ extension TrackingViewModel {
             marker.title = "Your Driver"
             marker.icon = MapMarkerIcon.driver
             marker.groundAnchor = CGPoint(x: 0.5, y: 0.5)
+            marker.rotation = bearing
+            marker.isFlat = true // rotates with the map instead of standing upright
             marker.map = mapView
 
             driverMarker = marker
@@ -274,6 +356,23 @@ extension TrackingViewModel {
                 mapView.animate(to: GMSCameraPosition.camera(withTarget: coordinate, zoom: 16))
             }
         }
+
+        lastDriverCoordinate = coordinate
+
+        updateRemainingRoute(from: coordinate, atSegment: snapped?.segmentIndex)
+    }
+
+    /// Heading between the last two polled fixes — the fallback for before any
+    /// route exists to read a segment bearing from. Polls land every 5s, far
+    /// enough apart that even city-block movement gives a usable direction.
+    private func headingSincePreviousFix(to coordinate: CLLocationCoordinate2D) -> CLLocationDirection? {
+
+        guard let previous = lastDriverCoordinate,
+              GMSGeometryDistance(previous, coordinate) > 1 else {
+            return nil
+        }
+
+        return GMSGeometryHeading(previous, coordinate)
     }
 }
 
@@ -328,7 +427,7 @@ private extension TrackingViewModel {
             etaText = route.durationText
             routeDistanceText = route.distanceText
 
-            draw(route.path)
+            drawRoute(route.path)
 
         } catch {
 
@@ -360,35 +459,247 @@ private extension TrackingViewModel {
         return Date().timeIntervalSince(lastRouteRefresh) >= Self.routeRefreshInterval
     }
 
-    func draw(_ path: GMSPath) {
+    func drawRoute(_ path: GMSPath) {
 
         guard let mapView else { return }
 
-        routePolyline?.map = nil
+        traveledPolyline?.map = nil
+        routeCasingPolyline?.map = nil
+        routeCorePolyline?.map = nil
 
-        let polyline = GMSPolyline(path: path)
-        polyline.strokeWidth = 6
-        polyline.strokeColor = UIColor(AppColors.appBlueColor)
-        polyline.geodesic = true
-        polyline.map = mapView
+        fullRoutePath = path
 
-        routePolyline = polyline
+        // Bottom layer: the driven-so-far line. Starts empty and fills in as the
+        // trip progresses, so the route visibly "burns down" behind the car.
+        let traveled = GMSPolyline()
+        traveled.strokeWidth = RouteStyle.traveledWidth
+        traveled.strokeColor = RouteStyle.traveledColor
+        traveled.geodesic = true
+        traveled.zIndex = RouteStyle.traveledZ
+        traveled.map = mapView
+        traveledPolyline = traveled
+
+        let casing = GMSPolyline(path: path)
+        casing.strokeWidth = RouteStyle.casingWidth
+        casing.strokeColor = RouteStyle.casingColor
+        casing.geodesic = true
+        casing.zIndex = RouteStyle.casingZ
+        casing.map = mapView
+        routeCasingPolyline = casing
+
+        let core = GMSPolyline(path: path)
+        core.strokeWidth = RouteStyle.coreWidth
+        core.strokeColor = RouteStyle.coreColor
+        core.geodesic = true
+        core.zIndex = RouteStyle.coreZ
+        core.map = mapView
+        routeCorePolyline = core
+
+        if path.count() > 0 {
+
+            // Directions snaps the requested pickup/drop-off onto the nearest
+            // road before routing to it — a building is rarely sitting exactly
+            // on one. Re-anchoring the pin to the route's own endpoint (rather
+            // than leaving it at the raw booking coordinate `refreshEndpointMarkers`
+            // placed it at) guarantees the line runs right into it.
+            let endCoordinate = path.coordinate(at: path.count() - 1)
+            pickupMarker?.position = endCoordinate
+
+            startCapMarker?.map = nil
+            endCapMarker?.map = nil
+            startCapMarker = makeCapMarker(at: path.coordinate(at: 0))
+            endCapMarker = makeCapMarker(at: endCoordinate)
+        }
 
         guard !hasFramedRoute else { return }
         hasFramedRoute = true
 
-        let bounds = GMSCoordinateBounds(path: path)
+        var bounds = GMSCoordinateBounds(path: path)
+        if let driverCoord = driverMarker?.position {
+            bounds = bounds.includingCoordinate(driverCoord)
+        }
         mapView.animate(with: GMSCameraUpdate.fit(bounds, withPadding: 60))
     }
+
+    private func makeCapMarker(at coordinate: CLLocationCoordinate2D) -> GMSMarker {
+        let marker = GMSMarker(position: coordinate)
+        marker.icon = RouteStyle.capIcon
+        marker.groundAnchor = CGPoint(x: 0.5, y: 0.5)
+        marker.zIndex = RouteStyle.capZ
+        marker.isFlat = true
+        marker.tracksViewChanges = false // a static dot — no need to redraw it every frame
+        marker.map = mapView
+        return marker
+    }
+
+    /// Finds the closest point to `coordinate` lying *on* the route itself —
+    /// not just the closest existing vertex — along with the heading of the
+    /// segment it landed on and that segment's start index. Mirrors the driver
+    /// app's `NavigationViewModel.projectOntoRoute`.
+    private func projectOntoRoute(
+        _ coordinate: CLLocationCoordinate2D,
+        path: GMSPath
+    ) -> (coordinate: CLLocationCoordinate2D, bearing: CLLocationDirection, segmentIndex: UInt)? {
+
+        guard path.count() > 1 else { return nil }
+
+        var best: (point: CLLocationCoordinate2D, index: UInt, distance: CLLocationDistance)?
+
+        for i in 0..<(path.count() - 1) {
+            let a = path.coordinate(at: i)
+            let b = path.coordinate(at: i + 1)
+
+            let projected = closestPoint(on: a, b, to: coordinate)
+            let distance = GMSGeometryDistance(coordinate, projected)
+
+            if best == nil || distance < best!.distance {
+                best = (projected, i, distance)
+            }
+        }
+
+        guard let best else { return nil }
+
+        // Polled positions can land well off the road (sparse updates, a
+        // slightly-off address). Beyond this it's no longer "noise to smooth
+        // over" — show the real position rather than pinning it to a route
+        // the driver may not actually be on.
+        guard best.distance < 40 else { return nil }
+
+        let a = path.coordinate(at: best.index)
+        let b = path.coordinate(at: best.index + 1)
+
+        return (best.point, GMSGeometryHeading(a, b), best.index)
+    }
+
+    /// Closest point on segment `a`→`b` to point `p`, via a flat-plane
+    /// projection (longitude scaled by `cos(latitude)` to correct for its
+    /// shrinking real-world distance away from the equator).
+    private func closestPoint(
+        on a: CLLocationCoordinate2D,
+        _ b: CLLocationCoordinate2D,
+        to p: CLLocationCoordinate2D
+    ) -> CLLocationCoordinate2D {
+
+        let cosLat = cos(p.latitude * .pi / 180)
+
+        let ax = a.longitude * cosLat, ay = a.latitude
+        let bx = b.longitude * cosLat, by = b.latitude
+        let px = p.longitude * cosLat, py = p.latitude
+
+        let dx = bx - ax, dy = by - ay
+        let lengthSquared = dx * dx + dy * dy
+
+        guard lengthSquared > 0 else { return a }
+
+        let t = max(0, min(1, ((px - ax) * dx + (py - ay) * dy) / lengthSquared))
+
+        return CLLocationCoordinate2D(latitude: ay + t * dy, longitude: (ax + t * dx) / cosLat)
+    }
+
+    /// Splits the route at the driver's current point: everything behind them
+    /// becomes the muted "traveled" line, everything ahead stays bright.
+    /// Measured against `fullRoutePath` rather than the drawn polylines, since
+    /// those get trimmed each tick and would otherwise drift.
+    ///
+    /// The split is seamed at `coord` itself — not the nearest vertex — so the
+    /// traveled/remaining boundary always sits exactly under the marker rather
+    /// than snapping forward or back by up to one polyline segment.
+    private func updateRemainingRoute(from coord: CLLocationCoordinate2D, atSegment segmentIndex: UInt?) {
+
+        guard let path = fullRoutePath, path.count() > 1 else { return }
+
+        let index = segmentIndex ?? nearestVertexIndex(to: coord, on: path)
+
+        let traveled = GMSMutablePath()
+        for i in 0...index {
+            traveled.add(path.coordinate(at: i))
+        }
+        traveled.add(coord)
+
+        let remaining = GMSMutablePath()
+        remaining.add(coord)
+        for i in (index + 1)..<path.count() {
+            remaining.add(path.coordinate(at: i))
+        }
+
+        traveledPolyline?.path = traveled
+
+        // Casing and core share the same remaining path so the border stays
+        // registered to the bright stroke on every frame.
+        routeCasingPolyline?.path = remaining
+        routeCorePolyline?.path = remaining
+    }
+
+    /// Fallback for `updateRemainingRoute` when `projectOntoRoute` found no
+    /// usable segment (driver off-route) — nearest existing vertex.
+    private func nearestVertexIndex(to coord: CLLocationCoordinate2D, on path: GMSPath) -> UInt {
+
+        var nearestIndex: UInt = 0
+        var minDist = CLLocationDistance.greatestFiniteMagnitude
+
+        for i in 0..<path.count() {
+            let dist = GMSGeometryDistance(coord, path.coordinate(at: i))
+            if dist < minDist {
+                minDist = dist
+                nearestIndex = i
+            }
+        }
+
+        return nearestIndex
+    }
+}
+
+/// Uber-style route styling, matching the driver app's `RouteStyle`. The
+/// widths matter as much as the colours: a thin line looks like a map
+/// annotation, a thick cased line reads as "this is your route".
+private enum RouteStyle {
+
+    static let casingWidth: CGFloat = 18
+    static let coreWidth: CGFloat = 12
+    static let traveledWidth: CGFloat = 12
+
+    /// Near-black with a blue cast — dark enough to separate the route from any
+    /// tile underneath without looking like a plain black scribble.
+    static let casingColor = UIColor(red: 0.05, green: 0.09, blue: 0.17, alpha: 0.95)
+
+    /// The app's own blue, so the live route reads as this app's rather than a
+    /// generic maps-SDK default.
+    static let coreColor = UIColor(AppColors.appBlueColor)
+
+    /// Already-driven portion: still visible for context, clearly de-emphasised.
+    static let traveledColor = UIColor(white: 0.58, alpha: 0.50)
+
+    static let traveledZ: Int32 = 1
+    static let casingZ: Int32 = 2
+    static let coreZ: Int32 = 3
+    static let capZ: Int32 = 4
+
+    /// `GMSPolyline` has no line-cap property — every line is drawn flat-cut.
+    /// A small dot layered the same way as the line (dark casing ring, bright
+    /// core center) sits over each endpoint and rounds it off.
+    static let capDiameter: CGFloat = casingWidth
+
+    static let capIcon: UIImage = {
+        let size = CGSize(width: capDiameter, height: capDiameter)
+        return UIGraphicsImageRenderer(size: size).image { _ in
+            casingColor.setFill()
+            UIBezierPath(ovalIn: CGRect(origin: .zero, size: size)).fill()
+
+            let coreInset = (capDiameter - coreWidth) / 2
+            coreColor.setFill()
+            UIBezierPath(ovalIn: CGRect(origin: .zero, size: size).insetBy(dx: coreInset, dy: coreInset)).fill()
+        }
+    }()
 }
 
 // MARK: - Booking actions
 
 extension TrackingViewModel {
 
-    /// Rider-initiated cancel — `api/cancel_book_client`, same params Android's
-    /// `TrackingActivity.cancelBooking()` sends.
-    func cancelBooking(bookingId: String) {
+    /// Rider-initiated cancel — `api/cancel_book_client`. Android's own
+    /// `TrackingActivity.cancelBooking()` sends no reason at all; requiring one
+    /// is a new requirement on top of that call, not a port of Android's.
+    func cancelBooking(bookingId: String, reason: String) {
 
         guard !isCancelling else { return }
 
@@ -401,7 +712,7 @@ extension TrackingViewModel {
             do {
 
                 let response: CommonResponse = try await APIClient.shared.request(
-                    CustomerAPI.cancelBooking(bookingId: bookingId),
+                    CustomerAPI.cancelBooking(bookingId: bookingId, reason: reason),
                     responseType: CommonResponse.self
                 )
 

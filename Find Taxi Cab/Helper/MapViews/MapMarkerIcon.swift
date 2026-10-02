@@ -7,23 +7,42 @@
 
 import UIKit
 
-/// Map pins drawn at runtime rather than loaded from the asset catalogue.
-///
-/// `GMSMarker` renders an icon at the image's own point size, so `taxi1.png`
-/// (216×132 at 1×) covered a quarter of the screen — and being a JPEG-style
-/// export with no alpha channel, it carried a white box around the car that no
-/// amount of resizing would remove. Drawing the symbol gives a transparent,
-/// correctly sized pin that stays crisp at any scale and reads on both the light
-/// and dark map styles.
+/// Map pins drawn at runtime rather than loaded from the asset catalogue —
+/// except `driver`, which is the `taxi1` asset itself (a top-down car, nose
+/// pointing up), resized below so it reads as a marker rather than covering a
+/// chunk of the map.
 enum MapMarkerIcon {
 
-    /// Rendered once each — markers are created on first fix and then only moved,
+    /// `GMSMarker` renders an icon at the image's own *point* size. `taxi1`
+    /// only has a "1x" slot filled in its asset catalogue entry, so UIKit loads
+    /// it as a 1x image — its 48×72 pixel size becomes 48×72 *points*, roughly
+    /// the width of this screen's whole driver card. Redrawing it into a
+    /// smaller canvas (preserving the transparency it already has) fixes that
+    /// without touching the source asset.
+    ///
+    /// Rendered once — markers are created on first fix and then only moved,
     /// but the map can be rebuilt on a theme change, so caching keeps that free.
-    static let driver = circular(
-        systemName: "car.fill",
-        background: UIColor(AppColors.primaryYellow),
-        foreground: .white
-    )
+    static let driver: UIImage = {
+
+        guard let source = UIImage(named: "taxi1") else {
+            return circular(
+                systemName: "car.fill",
+                background: UIColor(AppColors.primaryYellow),
+                foreground: .white
+            )
+        }
+
+        let targetHeight: CGFloat = 46
+        let scale = targetHeight / source.size.height
+        let targetSize = CGSize(width: source.size.width * scale, height: targetHeight)
+
+        let format = UIGraphicsImageRendererFormat.default()
+        format.opaque = false
+
+        return UIGraphicsImageRenderer(size: targetSize, format: format).image { _ in
+            source.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+    }()
 
     static let pickup = circular(
         systemName: "mappin",

@@ -46,7 +46,11 @@ final class LoginViewModel: ObservableObject {
             
             do {
                 
-                let fcmToken = FCMTokenManager.shared.getToken() ?? "FIREBASE_FCM_TOKEN"
+                // Never a placeholder string — an empty token tells the server
+                // honestly "none yet" rather than poisoning this account's push
+                // registration with a literal value that will never receive
+                // anything. See `FCMTokenManager.currentToken()`.
+                let fcmToken = await FCMTokenManager.shared.currentToken() ?? ""
                 
                 let response: LoginResponse = try await APIClient.shared.request(
                     CustomerAPI.login(

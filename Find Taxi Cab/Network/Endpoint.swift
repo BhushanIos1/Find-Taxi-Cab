@@ -197,7 +197,7 @@ enum CustomerAPI: Endpoint {
         time: String
     )
     
-    case cancelBooking(bookingId: String)
+    case cancelBooking(bookingId: String, reason: String)
     
     case getBookingStatus(bookingId: String)
     
@@ -614,10 +614,16 @@ extension CustomerAPI {
 
             return params
             
-        case .cancelBooking(let bookingId):
+        case .cancelBooking(let bookingId, let reason):
+            // Android's own rider app never sends a reason here — this is a new
+            // requirement layered on top of its call, not a port of one. Key
+            // name follows the driver app's cancel call (`change_book_status`
+            // takes `cancel_message`), which is the only precedent this backend
+            // has for "a cancellation reason" anywhere in either app.
             return [
                 "booking_id": bookingId,
-                "assign_status": "cancel"
+                "assign_status": "cancel",
+                "cancel_message": reason
             ]
             
         case .getBookingStatus(let bookingId):

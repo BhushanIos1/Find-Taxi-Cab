@@ -16,6 +16,9 @@ struct HomeScreen: View {
     @EnvironmentObject
     private var toastManager: ToastManager
     
+    @Environment(\.scenePhase)
+    private var scenePhase
+    
     @State private var presentSideMenu = false
     
     @State private var showShareSheet = false
@@ -58,12 +61,12 @@ struct HomeScreen: View {
     @State private var hasCheckedForActiveTrip = false
     
     var body: some View {
-        
+
         ZStack {
-            
+
             GoogleMapView()
                 .ignoresSafeArea()
-            
+
             VStack {
                 
                 RideLocationCard(
@@ -112,12 +115,30 @@ struct HomeScreen: View {
 
             openPendingChatIfNeeded()
 
+            // Every time this account's Home appears — cold launch or resuming
+            // a session — this device re-asserts its token as the one the
+            // server should push to. A device that logged in once and is never
+            // reopened again simply never runs this a second time, so it can't
+            // silently steal push back from whichever device the person is
+            // actually using; the one they're holding right now always wins.
+            FCMTokenManager.shared.registerWithServerIfLoggedIn()
+
             // Closed the app mid-trip? Go straight back to live tracking, the
             // automatic version of Android's BookingPage "Continue" button.
             if !hasCheckedForActiveTrip {
                 hasCheckedForActiveTrip = true
                 bookingViewModel.restoreActiveTrip()
             }
+        }
+        .onChange(of: scenePhase) { phase in
+
+            // Also on every return to foreground, not just the first mount —
+            // `.onAppear` alone only fires once for the life of this screen in
+            // the navigation stack, so leaving the app backgrounded for a long
+            // stretch and coming back would otherwise go untouched.
+            guard phase == .active else { return }
+
+            FCMTokenManager.shared.registerWithServerIfLoggedIn()
         }
         .onChange(of: bookingViewModel.restorableTrip) { trip in
 
