@@ -45,6 +45,7 @@ struct BookingItem: Identifiable, Decodable {
     let specialMessage: String?
     let baseFare: String?
     let specialNeed: String?
+    let vehicleSeater: Int?
 
     enum CodingKeys: String, CodingKey {
         case assignStatus = "assign_status"
@@ -62,6 +63,7 @@ struct BookingItem: Identifiable, Decodable {
         case specialMessage = "manual_msg"
         case baseFare = "base_fair"
         case specialNeed = "special_need"
+        case vehicleSeater = "vehicle_seater"
     }
 
     /// Hand-rolled because this row is mostly money and ids — `total_amt`,
@@ -94,6 +96,16 @@ struct BookingItem: Identifiable, Decodable {
         specialMessage = text(.specialMessage)
         baseFare = text(.baseFare)
         specialNeed = text(.specialNeed)
+
+        // `vehicle_seater` the same as everything else here — may arrive as
+        // a bare number or a quoted one.
+        if let value = try? c.decodeIfPresent(Int.self, forKey: .vehicleSeater) {
+            vehicleSeater = value
+        } else if let text = text(.vehicleSeater) {
+            vehicleSeater = Int(text)
+        } else {
+            vehicleSeater = nil
+        }
     }
 
     /// For previews and mock rows.
@@ -112,7 +124,8 @@ struct BookingItem: Identifiable, Decodable {
         price: String? = nil,
         specialMessage: String? = nil,
         baseFare: String? = nil,
-        specialNeed: String? = nil
+        specialNeed: String? = nil,
+        vehicleSeater: Int? = nil
     ) {
         self.assignStatus = assignStatus
         self.date = date
@@ -123,6 +136,7 @@ struct BookingItem: Identifiable, Decodable {
         self.destinationAddress = destinationAddress
         self.paidAmount = paidAmount
         self.paymentStatus = paymentStatus
+        self.vehicleSeater = vehicleSeater
         self.totalAmount = totalAmount
         self.driverTip = driverTip
         self.price = price

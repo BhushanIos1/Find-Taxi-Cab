@@ -15,7 +15,7 @@ struct TaxiCarCell: View {
         
         HStack(spacing: 10) {
             
-            Image("estimatedTaxi")
+            Image(VehicleSeatIcon.imageName(forSeater: car.seater))
                 .resizable()
                 .scaledToFit()
                 .frame(width: 88, height: 56)

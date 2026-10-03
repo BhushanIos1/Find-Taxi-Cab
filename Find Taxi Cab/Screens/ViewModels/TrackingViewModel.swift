@@ -17,12 +17,13 @@ final class TrackingViewModel: NSObject, ObservableObject {
     @Published var isCancelling = false
     @Published var cancelState: BookingState?
 
-    /// Set the moment `ride_otp` first appears on the booking — the driver has
-    /// tapped ON BOARD and asked the customer for it. Fires once per trip: there
-    /// is exactly one code to share, and re-showing it on every later poll tick
-    /// would just be noise once the customer has already seen it.
+    /// Set whenever `ride_otp` appears on the booking and differs from the
+    /// last code shown. The driver app can issue a new code (the OTP sheet's
+    /// own "Resend OTP") if the first one was lost or the customer missed it
+    /// — tracking the *value* rather than a one-shot flag means this popup
+    /// reopens with the new code instead of staying silent after the first.
     @Published var otpToShow: String?
-    private var hasShownOTP = false
+    private var lastShownOTP: String?
 
     /// Live from the Directions API — "10 min" / "4.2 km" to whichever point the
     /// trip is currently heading for. Nil until the first route lands, so the UI
@@ -153,11 +154,11 @@ extension TrackingViewModel {
 
             driverInfo = info
 
-            if !hasShownOTP, let otp = info.rideOtp, !otp.isEmpty {
+            if let otp = info.rideOtp, !otp.isEmpty, otp != lastShownOTP {
 
-                print("🔑 TRIP OTP RECEIVED for booking \(bookingId)")
+                print("🔑 TRIP OTP RECEIVED for booking \(bookingId) — \(lastShownOTP == nil ? "first code" : "new code, driver resent")")
 
-                hasShownOTP = true
+                lastShownOTP = otp
                 otpToShow = otp
             }
 
@@ -182,10 +183,10 @@ extension TrackingViewModel {
 
 extension TrackingViewModel {
 
-    /// `bookingId` is only needed here to keep checking for the OTP appearing —
-    /// once it has been shown, this stops asking `get_bookdatatoclient` again on
-    /// every tick, so the poll goes back to being just the location fetch it
-    /// always was.
+    /// `bookingId` is only needed here to keep checking for the OTP appearing
+    /// or changing — that stops once the trip moves past `.toPickup`, since
+    /// `ride_otp` only matters before the customer is actually in the car; a
+    /// driver's resend after boarding would just be a stale, irrelevant code.
     func startPolling(driverId: String, bookingId: String) {
 
         stopPolling()
@@ -199,7 +200,7 @@ extension TrackingViewModel {
 
                 await self?.fetchDriverLocation(driverId: driverId)
 
-                guard let self, !self.hasShownOTP else { return }
+                guard let self, self.phase == .toPickup else { return }
                 await self.loadDriverDetails(bookingId: bookingId)
             }
         }

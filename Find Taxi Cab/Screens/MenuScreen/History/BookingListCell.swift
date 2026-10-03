@@ -21,7 +21,7 @@ struct BookingListCell: View {
 
             HStack(alignment: .top) {
 
-                Image("estimatedTaxi")
+                Image(VehicleSeatIcon.imageName(forSeater: item.vehicleSeater))
                     .resizable()
                     .foregroundColor(.black)
                     .frame(width: 72, height: 56)
